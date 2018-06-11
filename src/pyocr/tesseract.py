@@ -27,7 +27,7 @@ import shutil
 
 from . import builders
 from . import util
-from .builders import DigitBuilder  # backward compatibility
+import pyocr.builders  # backward compatibility
 from .error import TesseractError  # backward compatibility
 from .util import digits_only
 
@@ -240,7 +240,7 @@ def get_available_builders():
         builders.TextBuilder,
         builders.WordBoxBuilder,
         CharBoxBuilder,
-        builders.DigitBuilder,
+        pyocr.builders.DigitBuilder,
     ]
 
 
