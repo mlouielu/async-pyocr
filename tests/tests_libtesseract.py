@@ -36,18 +36,10 @@ class TestContext(object):
         assert "fra" in langs
         assert "jpn" in langs
 
-    def test_nolangs(self):
-        tessdata_prefix = os.getenv("TESSDATA_PREFIX", "")
-        os.environ['TESSDATA_PREFIX'] = '/opt/tulipe'
-        try:
-            langs = libtesseract.get_available_languages()
-            assert langs == []
-        finally:
-            if tessdata_prefix == "":
-                os.environ['TESSDATA_PREFIX'] = ""
-                os.unsetenv("TESSDATA_PREFIX")
-            else:
-                os.environ['TESSDATA_PREFIX'] = tessdata_prefix
+    def test_nolangs(self, monkeypatch):
+        monkeypatch.setenv('TESSDATA_PREFIX', '/opt/tulipe')
+        langs = libtesseract.get_available_languages()
+        assert langs == []
 
     def teardown(self):
         pass
@@ -87,24 +79,16 @@ class TestTxt(base.BaseTestText, BaseLibtesseract):
     def test_multi(self):
         self._test_txt('test-european.jpg', 'test-european.txt', 'eng+fra')
 
-    def test_nolangs(self):
+    def test_nolangs(self, monkeypatch):
         """
         Issue #51: Running OCR without any language installed causes a SIGSEGV.
         """
-        tessdata_prefix = os.getenv("TESSDATA_PREFIX", "")
-        os.environ['TESSDATA_PREFIX'] = '/opt/tulipe'
-        try:
-            with pytest.raises(PyocrException):
-                self.tool.image_to_string(
-                    PIL.Image.open(self._path_to_img('test-japanese.jpg')),
-                    lang='fra'
-                )
-        finally:
-            if tessdata_prefix == "":
-                os.environ['TESSDATA_PREFIX'] = ""
-                os.unsetenv("TESSDATA_PREFIX")
-            else:
-                os.environ['TESSDATA_PREFIX'] = tessdata_prefix
+        monkeypatch.setenv('TESSDATA_PREFIX', '/opt/tulipe')
+        with pytest.raises(PyocrException):
+            self.tool.image_to_string(
+                PIL.Image.open(self._path_to_img('test-japanese.jpg')),
+                lang='fra'
+            )
 
     def test_nolangs2(self):
         with pytest.raises(PyocrException):
