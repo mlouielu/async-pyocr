@@ -1,6 +1,4 @@
 import os
-import codecs
-import tempfile
 
 import pytest
 
@@ -95,28 +93,23 @@ class TestWordBox(base.BaseTestWordBox, BaseCuneiform):
     def test_french(self):
         self._test_txt('test-french.jpg', 'test-french.words', 'fra')
 
-    def test_write_read(self):
+    def test_write_read(self, tmpdir):
         original_boxes = self._read_from_img(
             os.path.join("tests", "input", "specific", "test.png")
         )
         assert len(original_boxes) > 0
 
-        (file_descriptor, tmp_path) = tempfile.mkstemp()
-        try:
-            # we must open the file with codecs.open() for utf-8 support
-            os.close(file_descriptor)
+        tmp_path = tmpdir.join('test_write_read.txt')
 
-            with codecs.open(tmp_path, 'w', encoding='utf-8') as file_desc:
-                self._builder.write_file(file_desc, original_boxes)
+        with tmp_path.open('w', encoding='utf-8') as file_desc:
+            self._builder.write_file(file_desc, original_boxes)
 
-            with codecs.open(tmp_path, 'r', encoding='utf-8') as file_desc:
-                new_boxes = self._builder.read_file(file_desc)
+        with tmp_path.open('r', encoding='utf-8') as file_desc:
+            new_boxes = self._builder.read_file(file_desc)
 
-            assert len(new_boxes) == len(original_boxes)
-            for i in range(0, len(original_boxes)):
-                assert new_boxes[i] == original_boxes[i]
-        finally:
-            os.remove(tmp_path)
+        assert len(new_boxes) == len(original_boxes)
+        for i in range(0, len(original_boxes)):
+            assert new_boxes[i] == original_boxes[i]
 
 
 class TestOrientation(object):

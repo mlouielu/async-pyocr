@@ -1,6 +1,4 @@
 import os
-import codecs
-import tempfile
 
 from pyocr import builders
 from pyocr import tesseract
@@ -97,27 +95,22 @@ class TestCharBox(base.BaseTestBox, BaseTesseract):
     def test_japanese(self):
         self._test_txt('test-japanese.jpg', 'test-japanese.box', 'jpn')
 
-    def test_write_read(self):
+    def test_write_read(self, tmpdir):
         image_path = self._path_to_img("test.png")
         original_boxes = self._read_from_img(image_path)
         assert len(original_boxes) > 0
 
-        (file_descriptor, tmp_path) = tempfile.mkstemp()
-        try:
-            # we must open the file with codecs.open() for utf-8 support
-            os.close(file_descriptor)
+        tmp_path = tmpdir.join('test_write_read.txt')
 
-            with codecs.open(tmp_path, 'w', encoding='utf-8') as fdescriptor:
-                self._builder.write_file(fdescriptor, original_boxes)
+        with tmp_path.open('w', encoding='utf-8') as fdescriptor:
+            self._builder.write_file(fdescriptor, original_boxes)
 
-            with codecs.open(tmp_path, 'r', encoding='utf-8') as fdescriptor:
-                new_boxes = self._builder.read_file(fdescriptor)
+        with tmp_path.open('r', encoding='utf-8') as fdescriptor:
+            new_boxes = self._builder.read_file(fdescriptor)
 
-            assert len(new_boxes) == len(original_boxes)
-            for i in range(0, len(original_boxes)):
-                assert new_boxes[i] == original_boxes[i]
-        finally:
-            os.remove(tmp_path)
+        assert len(new_boxes) == len(original_boxes)
+        for i in range(0, len(original_boxes)):
+            assert new_boxes[i] == original_boxes[i]
 
 
 class TestDigit(base.BaseTestDigit, BaseTesseract):
@@ -144,27 +137,22 @@ class TestWordBox(base.BaseTestWordBox, BaseTesseract):
     def test_japanese(self):
         self._test_txt('test-japanese.jpg', 'test-japanese.words', 'jpn')
 
-    def test_write_read(self):
+    def test_write_read(self, tmpdir):
         image_path = self._path_to_img("test.png")
         original_boxes = self._read_from_img(image_path)
         assert len(original_boxes) > 0
 
-        (file_descriptor, tmp_path) = tempfile.mkstemp()
-        try:
-            # we must open the file with codecs.open() for utf-8 support
-            os.close(file_descriptor)
+        tmp_path = tmpdir.join('test_write_read.txt')
 
-            with codecs.open(tmp_path, 'w', encoding='utf-8') as fdescriptor:
-                self._builder.write_file(fdescriptor, original_boxes)
+        with tmp_path.open('w', encoding='utf-8') as fdescriptor:
+            self._builder.write_file(fdescriptor, original_boxes)
 
-            with codecs.open(tmp_path, 'r', encoding='utf-8') as fdescriptor:
-                new_boxes = self._builder.read_file(fdescriptor)
+        with tmp_path.open('r', encoding='utf-8') as fdescriptor:
+            new_boxes = self._builder.read_file(fdescriptor)
 
-            assert len(new_boxes) == len(original_boxes)
-            for i in range(0, len(original_boxes)):
-                assert new_boxes[i] == original_boxes[i]
-        finally:
-            os.remove(tmp_path)
+        assert len(new_boxes) == len(original_boxes)
+        for i in range(0, len(original_boxes)):
+            assert new_boxes[i] == original_boxes[i]
 
 
 class TestLineBox(base.BaseTestLineBox, BaseTesseract):
@@ -184,27 +172,22 @@ class TestLineBox(base.BaseTestLineBox, BaseTesseract):
     def test_japanese(self):
         self._test_txt('test-japanese.jpg', 'test-japanese.lines', 'jpn')
 
-    def test_write_read(self):
+    def test_write_read(self, tmpdir):
         image_path = self._path_to_img("test.png")
         original_boxes = self._read_from_img(image_path)
         assert len(original_boxes) > 0
 
-        (file_descriptor, tmp_path) = tempfile.mkstemp()
-        try:
-            # we must open the file with codecs.open() for utf-8 support
-            os.close(file_descriptor)
+        tmp_path = tmpdir.join('test_write_read.txt')
 
-            with codecs.open(tmp_path, 'w', encoding='utf-8') as fdescriptor:
-                self._builder.write_file(fdescriptor, original_boxes)
+        with tmp_path.open('w', encoding='utf-8') as fdescriptor:
+            self._builder.write_file(fdescriptor, original_boxes)
 
-            with codecs.open(tmp_path, 'r', encoding='utf-8') as fdescriptor:
-                new_boxes = self._builder.read_file(fdescriptor)
+        with tmp_path.open('r', encoding='utf-8') as fdescriptor:
+            new_boxes = self._builder.read_file(fdescriptor)
 
-            assert len(new_boxes) == len(original_boxes)
-            for i in range(0, len(original_boxes)):
-                assert new_boxes[i] == original_boxes[i]
-        finally:
-            os.remove(tmp_path)
+        assert len(new_boxes) == len(original_boxes)
+        for i in range(0, len(original_boxes)):
+            assert new_boxes[i] == original_boxes[i]
 
     def teardown(self):
         pass
