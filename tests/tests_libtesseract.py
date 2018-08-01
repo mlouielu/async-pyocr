@@ -2,6 +2,7 @@ import codecs
 import os
 import tempfile
 
+import pytest
 import unittest
 
 import PIL.Image
@@ -96,7 +97,7 @@ class TestTxt(base.BaseTestText, BaseLibtesseract, unittest.TestCase):
         tessdata_prefix = os.getenv("TESSDATA_PREFIX", "")
         os.environ['TESSDATA_PREFIX'] = '/opt/tulipe'
         try:
-            with self.assertRaises(PyocrException):
+            with pytest.raises(PyocrException):
                 self.tool.image_to_string(
                     PIL.Image.open(self._path_to_img('test-japanese.jpg')),
                     lang='fra'
@@ -109,7 +110,7 @@ class TestTxt(base.BaseTestText, BaseLibtesseract, unittest.TestCase):
                 os.environ['TESSDATA_PREFIX'] = tessdata_prefix
 
     def test_nolangs2(self):
-        with self.assertRaises(PyocrException):
+        with pytest.raises(PyocrException):
             self.tool.image_to_string(
                 PIL.Image.open(self._path_to_img('test-japanese.jpg')),
                 lang='doesnotexist'

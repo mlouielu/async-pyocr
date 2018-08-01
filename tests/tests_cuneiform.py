@@ -2,6 +2,7 @@ import os
 import codecs
 import tempfile
 
+import pytest
 import unittest
 
 from pyocr import cuneiform
@@ -73,11 +74,8 @@ class TestDigit(base.BaseTestDigit, BaseCuneiform, unittest.TestCase):
 
     def test_digits_not_implemented(self):
         image_path = self._path_to_img("test-digits.png")
-        self.assertRaises(
-            NotImplementedError,
-            self._read_from_img,
-            image_path
-        )
+        with pytest.raises(NotImplementedError):
+            self._read_from_img(image_path)
 
 
 class TestWordBox(base.BaseTestWordBox, BaseCuneiform, unittest.TestCase):
