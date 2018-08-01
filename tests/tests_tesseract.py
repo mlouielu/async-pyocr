@@ -92,10 +92,10 @@ class TestCharBox(base.BaseTestBox, BaseTesseract, unittest.TestCase):
         self._builder = tesseract.CharBoxBuilder()
 
     def _test_equal(self, output, expected_output):
-        self.assertEqual(len(output), len(expected_output))
+        assert len(output) == len(expected_output)
 
         for i in range(0, min(len(output), len(expected_output))):
-            self.assertEqual(output[i], expected_output[i])
+            assert output[i] == expected_output[i]
 
     def test_basic(self):
         self._test_txt('test.png', 'test.box')
@@ -125,9 +125,9 @@ class TestCharBox(base.BaseTestBox, BaseTesseract, unittest.TestCase):
             with codecs.open(tmp_path, 'r', encoding='utf-8') as fdescriptor:
                 new_boxes = self._builder.read_file(fdescriptor)
 
-            self.assertEqual(len(new_boxes), len(original_boxes))
+            assert len(new_boxes) == len(original_boxes)
             for i in range(0, len(original_boxes)):
-                self.assertEqual(new_boxes[i], original_boxes[i])
+                assert new_boxes[i] == original_boxes[i]
         finally:
             os.remove(tmp_path)
 
@@ -172,9 +172,9 @@ class TestWordBox(base.BaseTestWordBox, BaseTesseract, unittest.TestCase):
             with codecs.open(tmp_path, 'r', encoding='utf-8') as fdescriptor:
                 new_boxes = self._builder.read_file(fdescriptor)
 
-            self.assertEqual(len(new_boxes), len(original_boxes))
+            assert len(new_boxes) == len(original_boxes)
             for i in range(0, len(original_boxes)):
-                self.assertEqual(new_boxes[i], original_boxes[i])
+                assert new_boxes[i] == original_boxes[i]
         finally:
             os.remove(tmp_path)
 
@@ -212,9 +212,9 @@ class TestLineBox(base.BaseTestLineBox, BaseTesseract, unittest.TestCase):
             with codecs.open(tmp_path, 'r', encoding='utf-8') as fdescriptor:
                 new_boxes = self._builder.read_file(fdescriptor)
 
-            self.assertEqual(len(new_boxes), len(original_boxes))
+            assert len(new_boxes) == len(original_boxes)
             for i in range(0, len(original_boxes)):
-                self.assertEqual(new_boxes[i], original_boxes[i])
+                assert new_boxes[i] == original_boxes[i]
         finally:
             os.remove(tmp_path)
 
@@ -238,12 +238,12 @@ class TestOrientation(BaseTesseract, unittest.TestCase):
     def test_orientation_0(self):
         img = base.Image.open(self._path_to_img("test.png"))
         result = tesseract.detect_orientation(img, lang='eng')
-        self.assertEqual(result['angle'], 0)
+        assert result['angle'] == 0
 
     def test_orientation_90(self):
         img = base.Image.open(self._path_to_img("test-90.png"))
         result = tesseract.detect_orientation(img, lang='eng')
-        self.assertEqual(result['angle'], 90)
+        assert result['angle'] == 90
 
 
 def get_all_tests():

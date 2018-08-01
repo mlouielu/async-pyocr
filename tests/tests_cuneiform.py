@@ -20,9 +20,7 @@ class TestContext(unittest.TestCase):
                         "cuneiform not found. Is it installed ?")
 
     def test_version(self):
-        self.assertEqual(cuneiform.get_version(), (1, 1, 0),
-                         ("cuneiform does not have the expected version"
-                          " (1.1.0) ! Tests will fail !"))
+        assert cuneiform.get_version() == (1, 1, 0)
 
     def test_langs(self):
         langs = cuneiform.get_available_languages()
@@ -122,9 +120,9 @@ class TestWordBox(base.BaseTestWordBox, BaseCuneiform, unittest.TestCase):
             with codecs.open(tmp_path, 'r', encoding='utf-8') as file_desc:
                 new_boxes = self._builder.read_file(file_desc)
 
-            self.assertEqual(len(new_boxes), len(original_boxes))
+            assert len(new_boxes) == len(original_boxes)
             for i in range(0, len(original_boxes)):
-                self.assertEqual(new_boxes[i], original_boxes[i])
+                assert new_boxes[i] == original_boxes[i]
         finally:
             os.remove(tmp_path)
 

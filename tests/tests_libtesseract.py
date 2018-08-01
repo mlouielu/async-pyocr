@@ -56,7 +56,7 @@ class TestContext(unittest.TestCase):
         os.environ['TESSDATA_PREFIX'] = '/opt/tulipe'
         try:
             langs = libtesseract.get_available_languages()
-            self.assertEqual(langs, [])
+            assert langs == []
         finally:
             if tessdata_prefix == "":
                 os.environ['TESSDATA_PREFIX'] = ""
@@ -169,9 +169,9 @@ class TestWordBox(base.BaseTestWordBox, BaseLibtesseract, unittest.TestCase):
             with codecs.open(tmp_path, 'r', encoding='utf-8') as fdescriptor:
                 new_boxes = self._builder.read_file(fdescriptor)
 
-            self.assertEqual(len(new_boxes), len(original_boxes))
+            assert len(new_boxes) == len(original_boxes)
             for i in range(0, len(original_boxes)):
-                self.assertEqual(new_boxes[i], original_boxes[i])
+                assert new_boxes[i] == original_boxes[i]
         finally:
             os.remove(tmp_path)
 
@@ -208,9 +208,9 @@ class TestLineBox(base.BaseTestLineBox, BaseLibtesseract, unittest.TestCase):
             with codecs.open(tmp_path, 'r', encoding='utf-8') as fdescriptor:
                 new_boxes = self._builder.read_file(fdescriptor)
 
-            self.assertEqual(len(new_boxes), len(original_boxes))
+            assert len(new_boxes) == len(original_boxes)
             for i in range(0, len(original_boxes)):
-                self.assertEqual(new_boxes[i], original_boxes[i])
+                assert new_boxes[i] == original_boxes[i]
         finally:
             os.remove(tmp_path)
 
@@ -231,12 +231,12 @@ class TestOrientation(BaseLibtesseract, unittest.TestCase):
     def test_orientation_0(self):
         img = base.Image.open(self._path_to_img("test.png"))
         result = libtesseract.detect_orientation(img, lang='eng')
-        self.assertEqual(result['angle'], 0)
+        assert result['angle'] == 0
 
     def test_orientation_90(self):
         img = base.Image.open(self._path_to_img("test-90.png"))
         result = libtesseract.detect_orientation(img, lang='eng')
-        self.assertEqual(result['angle'], 90)
+        assert result['angle'] == 90
 
 
 class TestBasicDoc(base.BaseTestLineBox, unittest.TestCase):
