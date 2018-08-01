@@ -3,7 +3,6 @@ import os
 import tempfile
 
 import pytest
-import unittest
 
 import PIL.Image
 
@@ -13,11 +12,11 @@ from pyocr import PyocrException
 from . import tests_base as base
 
 
-class TestContext(unittest.TestCase):
+class TestContext(object):
     """
     These tests make sure the requirements for the tests are met.
     """
-    def setUp(self):
+    def setup(self):
         pass
 
     def test_available(self):
@@ -52,7 +51,7 @@ class TestContext(unittest.TestCase):
             else:
                 os.environ['TESSDATA_PREFIX'] = tessdata_prefix
 
-    def tearDown(self):
+    def teardown(self):
         pass
 
 
@@ -70,7 +69,7 @@ class BaseLibtesseract(base.BaseTest):
         )
 
 
-class TestTxt(base.BaseTestText, BaseLibtesseract, unittest.TestCase):
+class TestTxt(base.BaseTestText, BaseLibtesseract):
     """
     These tests make sure the "usual" OCR works fine. (the one generating
     a .txt file)
@@ -117,7 +116,7 @@ class TestTxt(base.BaseTestText, BaseLibtesseract, unittest.TestCase):
             )
 
 
-class TestDigit(base.BaseTestDigit, BaseLibtesseract, unittest.TestCase):
+class TestDigit(base.BaseTestDigit, BaseLibtesseract):
     """
     These tests make sure that Tesseract digits handling works fine.
     """
@@ -125,7 +124,7 @@ class TestDigit(base.BaseTestDigit, BaseLibtesseract, unittest.TestCase):
         self._test_txt('test-digits.png', 'test-digits.txt')
 
 
-class TestWordBox(base.BaseTestWordBox, BaseLibtesseract, unittest.TestCase):
+class TestWordBox(base.BaseTestWordBox, BaseLibtesseract):
     """
     These tests make sure that Tesseract box handling works fine.
     """
@@ -164,7 +163,7 @@ class TestWordBox(base.BaseTestWordBox, BaseLibtesseract, unittest.TestCase):
             os.remove(tmp_path)
 
 
-class TestLineBox(base.BaseTestLineBox, BaseLibtesseract, unittest.TestCase):
+class TestLineBox(base.BaseTestLineBox, BaseLibtesseract):
     """
     These tests make sure that Tesseract box handling works fine.
     """
@@ -203,13 +202,12 @@ class TestLineBox(base.BaseTestLineBox, BaseLibtesseract, unittest.TestCase):
             os.remove(tmp_path)
 
 
-class TestDigitLineBox(base.BaseTestDigitLineBox, BaseLibtesseract,
-                       unittest.TestCase):
+class TestDigitLineBox(base.BaseTestDigitLineBox, BaseLibtesseract):
     def test_digits(self):
         self._test_txt('test-digits.png', 'test-digits.lines')
 
 
-class TestOrientation(BaseLibtesseract, unittest.TestCase):
+class TestOrientation(BaseLibtesseract):
     def set_builder(self):
         self._builder = builders.TextBuilder()
 
@@ -227,7 +225,7 @@ class TestOrientation(BaseLibtesseract, unittest.TestCase):
         assert result['angle'] == 90
 
 
-class TestBasicDoc(base.BaseTestLineBox, unittest.TestCase):
+class TestBasicDoc(base.BaseTestLineBox):
     """
     These tests make sure that Tesseract box handling works fine.
     """
@@ -247,7 +245,7 @@ class TestBasicDoc(base.BaseTestLineBox, unittest.TestCase):
         self._test_txt('basic_doc.jpg', 'basic_doc.lines')
 
 
-class TestPdf(base.BaseTestPdf, unittest.TestCase):
+class TestPdf(base.BaseTestPdf):
     tool = libtesseract
 
     def _path_to_img(self, image_file):
@@ -262,63 +260,3 @@ class TestPdf(base.BaseTestPdf, unittest.TestCase):
 
     def test_basic(self):
         self._test_pdf('basic_doc.jpg')
-
-
-def get_all_tests():
-    all_tests = unittest.TestSuite()
-
-    test_names = [
-        'test_available',
-        'test_version',
-        'test_langs',
-        'test_nolangs',
-    ]
-    tests = unittest.TestSuite(map(TestContext, test_names))
-    all_tests.addTest(tests)
-
-    test_names = [
-        'test_basic',
-        'test_european',
-        'test_french',
-        'test_japanese',
-        'test_multi',
-        'test_nolangs',
-    ]
-    tests = unittest.TestSuite(map(TestTxt, test_names))
-    all_tests.addTest(tests)
-
-    test_names = [
-        'test_basic',
-        'test_european',
-        'test_french',
-        'test_japanese',
-        'test_write_read',
-    ]
-    tests = unittest.TestSuite(map(TestWordBox, test_names))
-    all_tests.addTest(tests)
-    tests = unittest.TestSuite(map(TestLineBox, test_names))
-    all_tests.addTest(tests)
-
-    test_names = [
-        'test_digits'
-    ]
-    tests = unittest.TestSuite(map(TestDigit, test_names))
-    all_tests.addTest(tests)
-    tests = unittest.TestSuite(map(TestDigitLineBox, test_names))
-    all_tests.addTest(tests)
-
-    test_names = [
-        'test_can_detect_orientation',
-        'test_orientation_0',
-        'test_orientation_90',
-    ]
-    tests = unittest.TestSuite(map(TestOrientation, test_names))
-    all_tests.addTest(tests)
-
-    test_names = [
-        'test_basic',
-    ]
-    tests = unittest.TestSuite(map(TestBasicDoc, test_names))
-    all_tests.addTest(tests)
-
-    return all_tests

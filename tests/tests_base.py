@@ -41,7 +41,7 @@ class BaseTest(object):
     def set_builder(self):
         raise NotImplementedError("Implemented in subclasses.")
 
-    def setUp(self):
+    def setup(self):
         self.set_builder()
 
     def _test_txt(self, image_file, expected_output_file, lang='eng'):
