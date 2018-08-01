@@ -16,20 +16,15 @@ class TestContext(unittest.TestCase):
         pass
 
     def test_available(self):
-        self.assertTrue(cuneiform.is_available(),
-                        "cuneiform not found. Is it installed ?")
+        assert cuneiform.is_available()
 
     def test_version(self):
         assert cuneiform.get_version() == (1, 1, 0)
 
     def test_langs(self):
         langs = cuneiform.get_available_languages()
-        self.assertTrue("eng" in langs,
-                        ("English training does not appear to be installed."
-                         " (required for the tests)"))
-        self.assertTrue("fra" in langs,
-                        ("French training does not appear to be installed."
-                         " (required for the tests)"))
+        assert "eng" in langs
+        assert "fra" in langs
 
     def tearDown(self):
         pass
@@ -107,7 +102,7 @@ class TestWordBox(base.BaseTestWordBox, BaseCuneiform, unittest.TestCase):
         original_boxes = self._read_from_img(
             os.path.join("tests", "input", "specific", "test.png")
         )
-        self.assertTrue(len(original_boxes) > 0)
+        assert len(original_boxes) > 0
 
         (file_descriptor, tmp_path) = tempfile.mkstemp()
         try:
@@ -129,7 +124,7 @@ class TestWordBox(base.BaseTestWordBox, BaseCuneiform, unittest.TestCase):
 
 class TestOrientation(unittest.TestCase):
     def test_can_detect_orientation(self):
-        self.assertFalse(cuneiform.can_detect_orientation())
+        assert not cuneiform.can_detect_orientation()
 
 
 def get_all_tests():

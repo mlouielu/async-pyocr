@@ -20,36 +20,23 @@ class TestContext(unittest.TestCase):
         pass
 
     def test_available(self):
-        self.assertTrue(
-            libtesseract.is_available(),
-            "Tesseract not found."
-            " Are libtesseract and libleptonica installed ? "
-        )
+        assert libtesseract.is_available()
 
     def test_version(self):
-        self.assertTrue(
-            libtesseract.get_version() in (
+        assert libtesseract.get_version() in (
                 (3, 2, 1),
                 (3, 2, 2),
                 (3, 3, 0),
                 (3, 4, 0),
                 (3, 4, 1),
                 (3, 5, 0),
-            ),
-            ("Tesseract does not have the expected version")
-        )
+            )
 
     def test_langs(self):
         langs = libtesseract.get_available_languages()
-        self.assertTrue("eng" in langs,
-                        ("English training does not appear to be installed."
-                         " (required for the tests)"))
-        self.assertTrue("fra" in langs,
-                        ("French training does not appear to be installed."
-                         " (required for the tests)"))
-        self.assertTrue("jpn" in langs,
-                        ("Japanese training does not appear to be installed."
-                         " (required for the tests)"))
+        assert "eng" in langs
+        assert "fra" in langs
+        assert "jpn" in langs
 
     def test_nolangs(self):
         tessdata_prefix = os.getenv("TESSDATA_PREFIX", "")
@@ -156,7 +143,7 @@ class TestWordBox(base.BaseTestWordBox, BaseLibtesseract, unittest.TestCase):
     def test_write_read(self):
         image_path = self._path_to_img("test.png")
         original_boxes = self._read_from_img(image_path)
-        self.assertTrue(len(original_boxes) > 0)
+        assert len(original_boxes) > 0
 
         (file_descriptor, tmp_path) = tempfile.mkstemp()
         try:
@@ -195,7 +182,7 @@ class TestLineBox(base.BaseTestLineBox, BaseLibtesseract, unittest.TestCase):
     def test_write_read(self):
         image_path = self._path_to_img("test.png")
         original_boxes = self._read_from_img(image_path)
-        self.assertTrue(len(original_boxes) > 0)
+        assert len(original_boxes) > 0
 
         (file_descriptor, tmp_path) = tempfile.mkstemp()
         try:
@@ -226,7 +213,7 @@ class TestOrientation(BaseLibtesseract, unittest.TestCase):
         self._builder = builders.TextBuilder()
 
     def test_can_detect_orientation(self):
-        self.assertTrue(libtesseract.can_detect_orientation())
+        assert libtesseract.can_detect_orientation()
 
     def test_orientation_0(self):
         img = base.Image.open(self._path_to_img("test.png"))

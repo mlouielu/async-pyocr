@@ -105,13 +105,12 @@ class BaseTestWordBox(BaseTestBox):
         self._builder = builders.WordBoxBuilder()
 
     def _test_equal(self, output, expected_output):
-        self.assertTrue(len(output) > 0)
+        assert len(output) > 0
         assert len(output) == len(expected_output)
 
         for i in range(0, min(len(output), len(expected_output))):
-            self.assertTrue(isinstance(expected_output[i].content,
-                                       six.text_type))
-            self.assertTrue(isinstance(output[i].content, six.text_type))
+            assert isinstance(expected_output[i].content, six.text_type)
+            assert isinstance(output[i].content, six.text_type)
             assert output[i] == expected_output[i]
 
 
@@ -146,4 +145,4 @@ class BaseTestPdf(BaseTest):
             return file_descriptor.read()
 
     def _test_not_empty(self, output):
-        self.assertTrue(len(output) > 0)
+        assert len(output) > 0
