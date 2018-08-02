@@ -78,10 +78,7 @@ class TestCharBox(base.BaseTestBox, BaseTesseract):
         self._builder = tesseract.CharBoxBuilder()
 
     def _test_equal(self, output, expected_output):
-        assert len(output) == len(expected_output)
-
-        for i in range(0, min(len(output), len(expected_output))):
-            assert output[i] == expected_output[i]
+        assert output == expected_output
 
     def test_basic(self):
         self._test_txt('test.png', 'test.box')
@@ -108,9 +105,7 @@ class TestCharBox(base.BaseTestBox, BaseTesseract):
         with tmp_path.open('r', encoding='utf-8') as fdescriptor:
             new_boxes = self._builder.read_file(fdescriptor)
 
-        assert len(new_boxes) == len(original_boxes)
-        for i in range(0, len(original_boxes)):
-            assert new_boxes[i] == original_boxes[i]
+        assert new_boxes == original_boxes
 
 
 class TestDigit(base.BaseTestDigit, BaseTesseract):
@@ -150,9 +145,7 @@ class TestWordBox(base.BaseTestWordBox, BaseTesseract):
         with tmp_path.open('r', encoding='utf-8') as fdescriptor:
             new_boxes = self._builder.read_file(fdescriptor)
 
-        assert len(new_boxes) == len(original_boxes)
-        for i in range(0, len(original_boxes)):
-            assert new_boxes[i] == original_boxes[i]
+        assert new_boxes == original_boxes
 
 
 class TestLineBox(base.BaseTestLineBox, BaseTesseract):
@@ -185,9 +178,7 @@ class TestLineBox(base.BaseTestLineBox, BaseTesseract):
         with tmp_path.open('r', encoding='utf-8') as fdescriptor:
             new_boxes = self._builder.read_file(fdescriptor)
 
-        assert len(new_boxes) == len(original_boxes)
-        for i in range(0, len(original_boxes)):
-            assert new_boxes[i] == original_boxes[i]
+        assert new_boxes == original_boxes
 
     def teardown(self):
         pass

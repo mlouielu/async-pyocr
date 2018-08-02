@@ -107,9 +107,7 @@ class TestWordBox(base.BaseTestWordBox, BaseCuneiform):
         with tmp_path.open('r', encoding='utf-8') as file_desc:
             new_boxes = self._builder.read_file(file_desc)
 
-        assert len(new_boxes) == len(original_boxes)
-        for i in range(0, len(original_boxes)):
-            assert new_boxes[i] == original_boxes[i]
+        assert new_boxes == original_boxes
 
 
 class TestOrientation(object):
