@@ -41,7 +41,7 @@ class BaseTest(object):
     def set_builder(self):
         raise NotImplementedError("Implemented in subclasses.")
 
-    def setUp(self):
+    def setup(self):
         self.set_builder()
 
     def _test_txt(self, image_file, expected_output_file, lang='eng'):
@@ -72,7 +72,7 @@ class BaseTestText(BaseTest):
             return file_descriptor.read().strip()
 
     def _test_equal(self, output, expected_output):
-        self.assertEqual(output, expected_output)
+        assert output == expected_output
 
 
 class BaseTestDigit(BaseTestText):
@@ -105,14 +105,13 @@ class BaseTestWordBox(BaseTestBox):
         self._builder = builders.WordBoxBuilder()
 
     def _test_equal(self, output, expected_output):
-        self.assertTrue(len(output) > 0)
-        self.assertEqual(len(output), len(expected_output))
+        assert len(output) > 0
+        assert len(output) == len(expected_output)
 
         for i in range(0, min(len(output), len(expected_output))):
-            self.assertTrue(isinstance(expected_output[i].content,
-                                       six.text_type))
-            self.assertTrue(isinstance(output[i].content, six.text_type))
-            self.assertEqual(output[i], expected_output[i])
+            assert isinstance(expected_output[i].content, six.text_type)
+            assert isinstance(output[i].content, six.text_type)
+            assert output[i] == expected_output[i]
 
 
 class BaseTestLineBox(BaseTestBox):
@@ -120,15 +119,15 @@ class BaseTestLineBox(BaseTestBox):
         self._builder = builders.LineBoxBuilder()
 
     def _test_equal(self, output, expected_output):
-        self.assertEqual(len(output), len(expected_output))
+        assert len(output) == len(expected_output)
 
         for i in range(0, min(len(output), len(expected_output))):
-            self.assertEqual(len(output[i].word_boxes),
-                             len(expected_output[i].word_boxes))
+            assert (len(output[i].word_boxes) ==
+                    len(expected_output[i].word_boxes))
             for j in range(0, len(output[i].word_boxes)):
-                self.assertEqual(type(output[i].word_boxes[j]),
-                                 type(expected_output[i].word_boxes[j]))
-            self.assertEqual(output[i], expected_output[i])
+                assert (type(output[i].word_boxes[j]) ==
+                        type(expected_output[i].word_boxes[j]))
+            assert output[i] == expected_output[i]
 
 
 class BaseTestDigitLineBox(BaseTestLineBox):
@@ -146,4 +145,4 @@ class BaseTestPdf(BaseTest):
             return file_descriptor.read()
 
     def _test_not_empty(self, output):
-        self.assertTrue(len(output) > 0)
+        assert len(output) > 0

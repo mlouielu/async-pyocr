@@ -1,39 +1,30 @@
 import os
-import codecs
-import tempfile
 
-import unittest
+import pytest
 
 from pyocr import cuneiform
 from . import tests_base as base
 
 
-class TestContext(unittest.TestCase):
+class TestContext(object):
     """
     These tests make sure the requirements for the tests are met.
     """
-    def setUp(self):
+    def setup(self):
         pass
 
     def test_available(self):
-        self.assertTrue(cuneiform.is_available(),
-                        "cuneiform not found. Is it installed ?")
+        assert cuneiform.is_available()
 
     def test_version(self):
-        self.assertEqual(cuneiform.get_version(), (1, 1, 0),
-                         ("cuneiform does not have the expected version"
-                          " (1.1.0) ! Tests will fail !"))
+        assert cuneiform.get_version() == (1, 1, 0)
 
     def test_langs(self):
         langs = cuneiform.get_available_languages()
-        self.assertTrue("eng" in langs,
-                        ("English training does not appear to be installed."
-                         " (required for the tests)"))
-        self.assertTrue("fra" in langs,
-                        ("French training does not appear to be installed."
-                         " (required for the tests)"))
+        assert "eng" in langs
+        assert "fra" in langs
 
-    def tearDown(self):
+    def teardown(self):
         pass
 
 
@@ -49,13 +40,13 @@ class BaseCuneiform(base.BaseTest):
         )
 
 
-class TestTxt(unittest.TestCase, base.BaseTestText, BaseCuneiform):
+class TestTxt(base.BaseTestText, BaseCuneiform):
     """
     These tests make sure the "usual" OCR works fine. (the one generating
     a .txt file)
     """
-    def setUp(self):
-        super(TestTxt, self).setUp()
+    def setup(self):
+        super(TestTxt, self).setup()
         self.tool = cuneiform
         self.set_builder()
 
@@ -68,31 +59,28 @@ class TestTxt(unittest.TestCase, base.BaseTestText, BaseCuneiform):
     def test_french(self):
         self._test_txt('test-french.jpg', 'test-french.txt', 'fra')
 
-    def tearDown(self):
+    def teardown(self):
         pass
 
 
-class TestDigit(base.BaseTestDigit, BaseCuneiform, unittest.TestCase):
-    def setUp(self):
-        super(TestDigit, self).setUp()
+class TestDigit(base.BaseTestDigit, BaseCuneiform):
+    def setup(self):
+        super(TestDigit, self).setup()
         self.tool = cuneiform
         self.set_builder()
 
     def test_digits_not_implemented(self):
         image_path = self._path_to_img("test-digits.png")
-        self.assertRaises(
-            NotImplementedError,
-            self._read_from_img,
-            image_path
-        )
+        with pytest.raises(NotImplementedError):
+            self._read_from_img(image_path)
 
 
-class TestWordBox(base.BaseTestWordBox, BaseCuneiform, unittest.TestCase):
+class TestWordBox(base.BaseTestWordBox, BaseCuneiform):
     """
     These tests make sure that cuneiform box handling works fine.
     """
-    def setUp(self):
-        super(TestWordBox, self).setUp()
+    def setup(self):
+        super(TestWordBox, self).setup()
         self.tool = cuneiform
         self.set_builder()
 
@@ -105,73 +93,23 @@ class TestWordBox(base.BaseTestWordBox, BaseCuneiform, unittest.TestCase):
     def test_french(self):
         self._test_txt('test-french.jpg', 'test-french.words', 'fra')
 
-    def test_write_read(self):
+    def test_write_read(self, tmpdir):
         original_boxes = self._read_from_img(
             os.path.join("tests", "input", "specific", "test.png")
         )
-        self.assertTrue(len(original_boxes) > 0)
+        assert len(original_boxes) > 0
 
-        (file_descriptor, tmp_path) = tempfile.mkstemp()
-        try:
-            # we must open the file with codecs.open() for utf-8 support
-            os.close(file_descriptor)
+        tmp_path = tmpdir.join('test_write_read.txt')
 
-            with codecs.open(tmp_path, 'w', encoding='utf-8') as file_desc:
-                self._builder.write_file(file_desc, original_boxes)
+        with tmp_path.open('w', encoding='utf-8') as file_desc:
+            self._builder.write_file(file_desc, original_boxes)
 
-            with codecs.open(tmp_path, 'r', encoding='utf-8') as file_desc:
-                new_boxes = self._builder.read_file(file_desc)
+        with tmp_path.open('r', encoding='utf-8') as file_desc:
+            new_boxes = self._builder.read_file(file_desc)
 
-            self.assertEqual(len(new_boxes), len(original_boxes))
-            for i in range(0, len(original_boxes)):
-                self.assertEqual(new_boxes[i], original_boxes[i])
-        finally:
-            os.remove(tmp_path)
+        assert new_boxes == original_boxes
 
 
-class TestOrientation(unittest.TestCase):
+class TestOrientation(object):
     def test_can_detect_orientation(self):
-        self.assertFalse(cuneiform.can_detect_orientation())
-
-
-def get_all_tests():
-    all_tests = unittest.TestSuite()
-
-    test_names = [
-        'test_available',
-        'test_version',
-        'test_langs',
-    ]
-    tests = unittest.TestSuite(map(TestContext, test_names))
-    all_tests.addTest(tests)
-
-    test_names = [
-        'test_basic',
-        'test_european',
-        'test_french',
-    ]
-    tests = unittest.TestSuite(map(TestTxt, test_names))
-    all_tests.addTest(tests)
-
-    test_names = [
-        'test_basic',
-        'test_european',
-        'test_french',
-        'test_write_read',
-    ]
-    tests = unittest.TestSuite(map(TestWordBox, test_names))
-    all_tests.addTest(tests)
-
-    test_names = [
-        'test_digits_not_implemented'
-    ]
-    tests = unittest.TestSuite(map(TestDigit, test_names))
-    all_tests.addTest(tests)
-
-    test_names = [
-        'test_can_detect_orientation',
-    ]
-    tests = unittest.TestSuite(map(TestOrientation, test_names))
-    all_tests.addTest(tests)
-
-    return all_tests
+        assert not cuneiform.can_detect_orientation()
