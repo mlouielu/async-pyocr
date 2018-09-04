@@ -125,7 +125,7 @@ class BaseTestLineBox(BaseTestBox):
             assert (len(output[i].word_boxes) ==
                     len(expected_output[i].word_boxes))
             for j in range(0, len(output[i].word_boxes)):
-                assert (type(output[i].word_boxes[j]) ==
+                assert (type(output[i].word_boxes[j]) ==  # noqa
                         type(expected_output[i].word_boxes[j]))
             assert output[i] == expected_output[i]
 
