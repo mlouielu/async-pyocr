@@ -304,8 +304,9 @@ class TextBuilder(BaseBuilder):
 
     def __init__(self, tesseract_layout=3, cuneiform_dotmatrix=False,
                  cuneiform_fax=False, cuneiform_singlecolumn=False):
+        from .tesseract import psm_parameter
+        tess_flags = [psm_parameter(), str(tesseract_layout)]
         file_ext = ["txt"]
-        tess_flags = ["-psm", str(tesseract_layout)]
         cun_args = ["-f", "text"]
         # Add custom cuneiform parameters if needed
         for par, arg in [(cuneiform_dotmatrix, "--dotmatrix"),
@@ -561,8 +562,9 @@ class WordBoxBuilder(BaseBuilder):
     """
 
     def __init__(self, tesseract_layout=1):
+        from .tesseract import psm_parameter
+        tess_flags = [psm_parameter(), str(tesseract_layout)]
         file_ext = ["html", "hocr"]
-        tess_flags = ["-psm", str(tesseract_layout)]
         tess_conf = ["hocr"]
         cun_args = ["-f", "hocr"]
         super(WordBoxBuilder, self).__init__(file_ext, tess_flags, tess_conf,
@@ -637,8 +639,9 @@ class LineBoxBuilder(BaseBuilder):
     """
 
     def __init__(self, tesseract_layout=1):
+        from .tesseract import psm_parameter
+        tess_flags = [psm_parameter(), str(tesseract_layout)]
         file_ext = ["html", "hocr"]
-        tess_flags = ["-psm", str(tesseract_layout)]
         tess_conf = ["hocr"]
         cun_args = ["-f", "hocr"]
         super(LineBoxBuilder, self).__init__(file_ext, tess_flags, tess_conf,
