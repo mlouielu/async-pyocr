@@ -42,7 +42,11 @@ def can_detect_orientation():
 
 
 def detect_orientation(image, lang=None):
-    handle = tesseract_raw.init(lang=lang)
+    # C-API with Tesseract 4 segfaults if running OSD_ONLY
+    # psm mode with other than osd language
+    # lang argument left purely for compatibility reasons
+    # tested on 4.0.0-rc2
+    handle = tesseract_raw.init(lang='osd')
     try:
         tesseract_raw.set_page_seg_mode(
             handle, tesseract_raw.PageSegMode.OSD_ONLY
