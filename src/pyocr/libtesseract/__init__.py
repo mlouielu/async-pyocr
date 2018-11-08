@@ -20,8 +20,14 @@ from . import tesseract_raw
 from ..error import TesseractError
 from ..util import digits_only
 
+import locale
 import logging
 logger = logging.getLogger(__name__)
+
+
+# Tesseract 4 workaround
+if tesseract_raw.get_version() == "4.0.0":
+    locale.setlocale(locale.LC_ALL, "C")
 
 
 __all__ = [
