@@ -51,7 +51,7 @@ class Box(object):
             content --- a single string
             position --- the position of the box on the image. Given as a
                 tuple of tuple:
-                ((width_pt_x, height_pt_x), (width_pt_y, height_pt_y))
+                ((box_pt_min_x, box_pt_min_y), (box_pt_max_x, box_pt_max_y))
         """
         content = to_unicode(content)
         self.content = content
