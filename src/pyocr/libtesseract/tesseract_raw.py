@@ -79,7 +79,8 @@ class PageSegMode(object):
     SINGLE_CHAR = 10
     SPARSE_TEXT = 11
     SPARSE_TEXT_OSD = 12
-    COUNT = 13
+    PSM_RAW_LINE = 13
+    COUNT = 14
 
 
 class Orientation(object):

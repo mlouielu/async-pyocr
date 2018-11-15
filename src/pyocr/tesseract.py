@@ -186,11 +186,11 @@ def detect_orientation(image, lang=None):
     with temp_dir() as tmpdir:
         command = [TESSERACT_CMD, "input.bmp", 'stdout', psm_parameter(), "0"]
         version = get_version()
-        if version[0] >= 4:
-            # XXX: temporary fix to remove once Tesseract 4 is stable
-            command += ["--oem", "0"]
         if lang is not None:
-            command += ['-l', lang]
+            if version[0] < 4:
+                command += ['-l', lang]
+            else:
+                command += ['-l', 'osd']
 
         if image.mode != "RGB":
             image = image.convert("RGB")

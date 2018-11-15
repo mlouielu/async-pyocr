@@ -23,6 +23,7 @@ class TestContext(object):
                 (3, 4, 0),
                 (3, 4, 1),
                 (3, 5, 0),
+                (4, 0, 0),
             )
 
     def test_langs(self):
