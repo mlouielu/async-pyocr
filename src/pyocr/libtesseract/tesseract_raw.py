@@ -11,6 +11,11 @@ logger = logging.getLogger(__name__)
 TESSDATA_PREFIX = os.getenv('TESSDATA_PREFIX', None)
 libnames = []
 
+# 70 is the minimum credible dpi for tesseract and force it to compute an
+# estimate of the image dpi
+DPI_DEFAULT = 70
+
+
 if getattr(sys, 'frozen', False):
     # Pyinstaller integration
     libnames += [os.path.join(sys._MEIPASS, "libtesseract-4.dll")]
@@ -443,16 +448,17 @@ def set_image(handle, image):
     image.load()
     imgdata = image.tobytes("raw", "RGB")
 
-    imgsize = image.size
-
     g_libtesseract.TessBaseAPISetImage(
         ctypes.c_void_p(handle),
         imgdata,
-        ctypes.c_int(imgsize[0]),
-        ctypes.c_int(imgsize[1]),
+        ctypes.c_int(image.width),
+        ctypes.c_int(image.height),
         ctypes.c_int(3),  # RGB = 3 * 8
-        ctypes.c_int(imgsize[0] * 3)
+        ctypes.c_int(image.width * 3)
     )
+
+    dpi = image.info.get("dpi", [DPI_DEFAULT])[0]
+    g_libtesseract.TessBaseAPISetSourceResolution(handle, dpi)
 
 
 def recognize(handle):
