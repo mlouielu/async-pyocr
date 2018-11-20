@@ -23,7 +23,7 @@ import subprocess
 import tempfile
 
 from . import builders
-from . import error
+from .error import CuneiformError
 from . import util
 
 
@@ -63,28 +63,13 @@ def get_available_builders():
     return [
         builders.TextBuilder,
         builders.WordBoxBuilder,
+        builders.LineBoxBuilder,
     ]
-
-
-class CuneiformError(error.PyocrException):
-    def __init__(self, status, message):
-        error.PyocrException.__init__(self, message)
-        self.status = status
-        self.message = message
-        self.args = (status, message)
 
 
 def temp_file(suffix):
     ''' Returns a temporary file '''
     return tempfile.NamedTemporaryFile(prefix='cuneiform_', suffix=suffix)
-
-
-def cleanup(filename):
-    ''' Tries to remove the given filename. Ignores non-existent files '''
-    try:
-        os.remove(filename)
-    except OSError:
-        pass
 
 
 def image_to_string(image, lang=None, builder=None):
@@ -152,8 +137,8 @@ def get_version():
     proc.wait()
     for line in output.split("\n"):
         m = VERSION_LINE_RE.match(line)
-        g = m.groups()
         if m is not None:
+            g = m.groups()
             ver = (int(g[0]), int(g[1]), int(g[2]))
             return ver
     return None
