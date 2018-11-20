@@ -26,8 +26,11 @@ logger = logging.getLogger(__name__)
 
 
 # Tesseract 4 workaround
-if tesseract_raw.get_version() == "4.0.0":
-    locale.setlocale(locale.LC_ALL, "C")
+try:
+    if tesseract_raw.get_version() == "4.0.0":
+        locale.setlocale(locale.LC_ALL, "C")
+except AssertionError:  # pragma: no cover
+    pass
 
 
 __all__ = [
@@ -85,6 +88,9 @@ def get_available_builders():
     return [
         builders.TextBuilder,
         builders.WordBoxBuilder,
+        builders.DigitBuilder,
+        builders.LineBoxBuilder,
+        builders.DigitLineBoxBuilder,
     ]
 
 

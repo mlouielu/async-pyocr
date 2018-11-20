@@ -10,13 +10,12 @@ logger = logging.getLogger(__name__)
 
 TESSDATA_PREFIX = os.getenv('TESSDATA_PREFIX', None)
 libnames = []
-
 # 70 is the minimum credible dpi for tesseract and force it to compute an
 # estimate of the image dpi
 DPI_DEFAULT = 70
 
 
-if getattr(sys, 'frozen', False):
+if getattr(sys, 'frozen', False):  # pragma: no cover
     # Pyinstaller integration
     libnames += [os.path.join(sys._MEIPASS, "libtesseract-4.dll")]
     libnames += [os.path.join(sys._MEIPASS, "libtesseract-3.dll")]
@@ -31,7 +30,7 @@ if getattr(sys, 'frozen', False):
         TESSDATA_PREFIX = tessdata
 
 
-if sys.platform[:3] == "win":
+if sys.platform[:3] == "win":  # pragma: no cover
     libnames += [
         # Jflesch> Don't they have the equivalent of LD_LIBRARY_PATH on
         # Windows ?
@@ -56,12 +55,12 @@ else:
 g_libtesseract = None
 
 lib_load_errors = []
-for libname in libnames:
+for libname in libnames:  # pragma: no branch
     try:
         g_libtesseract = ctypes.cdll.LoadLibrary(libname)
         lib_load_errors = []
         break
-    except OSError as ex:
+    except OSError as ex:  # pragma: no cover
         if hasattr(ex, 'message'):
             # python 2
             lib_load_errors.append((libname, ex.message))
@@ -134,7 +133,7 @@ class OSResults(ctypes.Structure):
     ]
 
 
-if g_libtesseract:
+if g_libtesseract:  # pragma: no cover
     g_libtesseract.TessVersion.argtypes = []
     g_libtesseract.TessVersion.restype = ctypes.c_char_p
 
@@ -353,7 +352,7 @@ def init(lang=None):
         if lang:
             lang = lang.encode("utf-8")
         prefix = None
-        if TESSDATA_PREFIX:
+        if TESSDATA_PREFIX:  # pragma: no cover
             prefix = TESSDATA_PREFIX.encode("utf-8")
         g_libtesseract.TessBaseAPIInit3(
             ctypes.c_void_p(handle),
