@@ -7,3 +7,4 @@ venv*/
 .tox/
 .egg*/
 _version.py
+.coverage
