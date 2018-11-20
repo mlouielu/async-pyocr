@@ -37,7 +37,7 @@ CUNEIFORM_DATA_POSSIBLE_PATHS = [
 
 LANGUAGES_LINE_PREFIX = "Supported languages: "
 LANGUAGES_SPLIT_RE = re.compile("[^a-z]")
-VERSION_LINE_RE = re.compile("Cuneiform for \w+ (\d+).(\d+).(\d+)")
+VERSION_LINE_RE = re.compile(r"Cuneiform for \w+ (\d+).(\d+).(\d+)")
 
 __all__ = [
     'can_detect_orientation',
