@@ -246,39 +246,39 @@ class BaseBuilder(object):
         self.cuneiform_args = cuneiform_args
 
     # used with Tesseract and Cuneiform
-    def read_file(self, file_descriptor):
+    def read_file(self, file_descriptor):  # pragma: no cover
         """
         Read in the OCR results from `file_descriptor`
         as an appropriate format.
         """
         raise NotImplementedError("Implement in subclasses")
 
-    def write_file(self, file_descriptor, output):
+    def write_file(self, file_descriptor, output):  # pragma: no cover
         """
         Write the `output` to `file_descriptor`.
         """
         raise NotImplementedError("Implement in subclasses")
 
     # used with Libtesseract
-    def start_line(self, box):
+    def start_line(self, box):  # pragma: no cover
         """
         Start a new line of output.
         """
         raise NotImplementedError("Implement in subclasses")
 
-    def add_word(self, word, box, confidence=0):
+    def add_word(self, word, box, confidence=0):  # pragma: no cover
         """
         Add a word to output.
         """
         raise NotImplementedError("Implement in subclasses")
 
-    def end_line(self):
+    def end_line(self):  # pragma: no cover
         """
         End a line in output.
         """
         raise NotImplementedError("Implement in subclasses")
 
-    def get_output(self):
+    def get_output(self):  # pragma: no cover
         """
         Return the output that has been built so far.
         """
@@ -339,8 +339,7 @@ class TextBuilder(BaseBuilder):
     def get_output(self):
         return u"\n".join(self.built_text)
 
-    @staticmethod
-    def __str__():
+    def __str__(self):
         return "Raw text"
 
 
@@ -358,9 +357,8 @@ class DigitBuilder(TextBuilder):
         The returned string is encoded in UTF-8.
     """
 
-    @staticmethod
-    def __str__():
-        return "Digits raw text."
+    def __str__(self):
+        return "Digits raw text"
 
     def __init__(self, tesseract_layout=3):
         super(DigitBuilder, self).__init__(tesseract_layout)
@@ -465,8 +463,7 @@ class _WordHTMLParser(HTMLParser):
             self.__current_line_content = []
             return
 
-    @staticmethod
-    def __str__():
+    def __str__(self):  # pragma: no cover
         return "WordHTMLParser"
 
 
@@ -543,8 +540,7 @@ class _LineHTMLParser(HTMLParser):
             self.boxes.append(box)
         self.__line_text = None
 
-    @staticmethod
-    def __str__():
+    def __str__(self):  # pragma: no cover
         return "LineHTMLParser"
 
 
@@ -620,8 +616,7 @@ class WordBoxBuilder(BaseBuilder):
     def get_output(self):
         return self.word_boxes
 
-    @staticmethod
-    def __str__():
+    def __str__(self):
         return "Word boxes"
 
 
@@ -705,8 +700,7 @@ class LineBoxBuilder(BaseBuilder):
     def get_output(self):
         return self.lines
 
-    @staticmethod
-    def __str__():
+    def __str__(self):
         return "Line boxes"
 
 
@@ -719,8 +713,7 @@ class DigitLineBoxBuilder(LineBoxBuilder):
     unable to process the input this way.
     """
 
-    @staticmethod
-    def __str__():
+    def __str__(self):
         return "Digit line boxes"
 
     def __init__(self, tesseract_layout=1):
