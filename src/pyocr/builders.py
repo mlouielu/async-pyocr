@@ -14,6 +14,8 @@ except ImportError:
 import xml.dom.minidom
 import logging
 
+import six
+
 from .util import to_unicode
 
 logger = logging.getLogger(__name__)
@@ -38,6 +40,7 @@ _XHTML_HEADER = to_unicode("""<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
 """)
 
 
+@six.python_2_unicode_compatible
 class Box(object):
     """
     Boxes are rectangles around each individual element recognized in the
@@ -53,24 +56,9 @@ class Box(object):
                 tuple of tuple:
                 ((box_pt_min_x, box_pt_min_y), (box_pt_max_x, box_pt_max_y))
         """
-        content = to_unicode(content)
         self.content = content
         self.position = position
         self.confidence = confidence
-
-    def get_unicode_string(self):
-        """
-        Return the string corresponding to the box, in unicode (utf8).
-        This string can be stored in a file as-is (see write_box_file())
-        and reread using read_box_file().
-        """
-        return to_unicode("%s %d %d %d %d") % (
-            self.content,
-            self.position[0][0],
-            self.position[0][1],
-            self.position[1][0],
-            self.position[1][1],
-        )
 
     def get_xml_tag(self, parent_doc):
         span_tag = parent_doc.createElement("span")
@@ -85,13 +73,19 @@ class Box(object):
         return span_tag
 
     def __str__(self):
-        return self.get_unicode_string().encode('utf-8')
+        return u"{} {} {} {} {}".format(
+            self.content,
+            self.position[0][0],
+            self.position[0][1],
+            self.position[1][0],
+            self.position[1][1],
+        )
 
     def __box_cmp(self, other):
         """
         Comparison function.
         """
-        if other is None:
+        if other is None or getattr(other, "position", None) is None:
             return -1
         for (x, y) in ((self.position[0][1], other.position[0][1]),
                        (self.position[1][1], other.position[1][1]),
@@ -130,6 +124,7 @@ class Box(object):
         return (position_hash ^ hash(self.content) ^ hash(self.content))
 
 
+@six.python_2_unicode_compatible
 class LineBox(object):
     """
     Boxes are rectangles around each individual element recognized in the
@@ -147,31 +142,13 @@ class LineBox(object):
         self.word_boxes = word_boxes
         self.position = position
 
-    def get_unicode_string(self):
-        """
-        Return the string corresponding to the box, in unicode (utf8).
-        This string can be stored in a file as-is (see write_box_file())
-        and reread using read_box_file().
-        """
-        txt = to_unicode("[\n")
+    @property
+    def content(self):
+        txt = u""
         for box in self.word_boxes:
-            txt += to_unicode("  %s\n") % box.get_unicode_string()
-        return to_unicode("%s] %d %d %d %d") % (
-            txt,
-            self.position[0][0],
-            self.position[0][1],
-            self.position[1][0],
-            self.position[1][1],
-        )
-
-    def __get_content(self):
-        txt = to_unicode("")
-        for box in self.word_boxes:
-            txt += box.content + to_unicode(" ")
+            txt += box.content + u" "
         txt = txt.strip()
         return txt
-
-    content = property(__get_content)
 
     def get_xml_tag(self, parent_doc):
         span_tag = parent_doc.createElement("span")
@@ -179,22 +156,38 @@ class LineBox(object):
         span_tag.setAttribute("title", ("bbox %d %d %d %d" % (
             (self.position[0][0], self.position[0][1],
              self.position[1][0], self.position[1][1]))))
-        for box in self.word_boxes:
-            space = xml.dom.minidom.Text()
-            space.data = " "
-            span_tag.appendChild(space)
+        for box_idx, box in enumerate(self.word_boxes):
+            if box_idx:
+                space = xml.dom.minidom.Text()
+                space.data = " "
+                span_tag.appendChild(space)
             box_xml = box.get_xml_tag(parent_doc)
             span_tag.appendChild(box_xml)
         return span_tag
 
     def __str__(self):
-        return self.get_unicode_string().encode('utf-8')
+        txt = u"[\n"
+        for box in self.word_boxes:
+            txt += u"  {} {} {} {} {}\n".format(
+                box.content,
+                box.position[0][0],
+                box.position[0][1],
+                box.position[1][0],
+                box.position[1][1],
+            )
+        return u"{}] {} {} {} {}".format(
+            txt,
+            self.position[0][0],
+            self.position[0][1],
+            self.position[1][0],
+            self.position[1][1],
+        )
 
     def __box_cmp(self, other):
         """
         Comparison function.
         """
-        if other is None:
+        if other is None or getattr(other, "position", None) is None:
             return -1
         for (x, y) in ((self.position[0][1], other.position[0][1]),
                        (self.position[1][1], other.position[1][1]),
@@ -231,7 +224,7 @@ class LineBox(object):
         position_hash += ((self.position[0][1] & 0xFF) << 8)
         position_hash += ((self.position[1][0] & 0xFF) << 16)
         position_hash += ((self.position[1][1] & 0xFF) << 24)
-        return (position_hash ^ hash(content) ^ hash(content))
+        return (position_hash ^ hash(content))
 
 
 class BaseBuilder(object):
