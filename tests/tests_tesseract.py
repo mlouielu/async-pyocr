@@ -643,6 +643,29 @@ class TestTesseractTxt(BaseTest):
     @patch("pyocr.tesseract.temp_dir")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
+    def test_text_cannot_open_file(self, run_tesseract, copen, temp_dir):
+        run_tesseract.return_value = (0, "")
+        copen.side_effect = OSError("Error opening file")
+        with tempfile.TemporaryDirectory(prefix="tess_") as tmpdir:
+            enter = MagicMock()
+            enter.__enter__.return_value = tmpdir
+            temp_dir.return_value = enter
+            with open(os.path.join(tmpdir, "output.txt"), "w") as fh:
+                fh.write("")
+            with self.assertRaises(tesseract.TesseractError) as te:
+                tesseract.image_to_string(self.image, builder=self.builder)
+        self.assertEqual(te.exception.status, -1)
+        self.assertIn("Unable to find output file last name tried",
+                      te.exception.message)
+        run_tesseract.assert_called_once_with(
+            "input.bmp", "output", cwd=tmpdir, lang=None,
+            flags=self.builder.tesseract_flags,
+            configs=self.builder.tesseract_configs,
+        )
+
+    @patch("pyocr.tesseract.temp_dir")
+    @patch("codecs.open")
+    @patch("pyocr.tesseract.run_tesseract")
     def test_text_no_output(self, run_tesseract, copen, temp_dir):
         run_tesseract.return_value = (0, "No file output")
         copen.return_value = StringIO(self._get_file_content("text"))

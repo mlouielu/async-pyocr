@@ -384,6 +384,8 @@ def image_to_string(image, lang=None, builder=None):
                                  errors='replace') as file_desc:
                     results = builder.read_file(file_desc)
                 return results
+            except OSError:
+                pass
             finally:
                 cleanup(output_file_name)
             break
