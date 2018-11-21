@@ -304,6 +304,43 @@ class TestTesseract(BaseTest):
     @patch("pyocr.tesseract.get_version")
     @patch("pyocr.tesseract.temp_dir")
     @patch("subprocess.Popen")
+    def test_detect_orientation_tesseract4_rgb_image(self, Popen,
+                                                     temp_dir, get_version):
+        get_version.return_value = (4, 0, 0)
+        image = Image.open(self._get_file_path("orientation.png"))
+        image = image.convert("RGB")
+        message = (
+            "Page number: 0\n"
+            "Orientation in degrees: 90\n"
+            "Rotate: 270\n"
+            "Orientation confidence: 9.30\n"
+            "Script: Latin\n"
+            "Script confidence: 8.06\n"
+        )
+        self.stdout.stdout.read.return_value = message.encode()
+        Popen.return_value = self.stdout
+        with tempfile.TemporaryDirectory(prefix="tess_") as tmpdir:
+            enter = MagicMock()
+            enter.__enter__.return_value = tmpdir
+            temp_dir.return_value = enter
+            result = tesseract.detect_orientation(image)
+            self.assertEqual(result["angle"], 90)
+            self.assertEqual(result["confidence"], 9.30)
+            Popen.assert_called_once_with(
+                ["tesseract", "input.bmp", "stdout", "--psm", "0"],
+                stdin=subprocess.PIPE,
+                shell=False,
+                startupinfo=None,
+                creationflags=0,
+                cwd=tmpdir,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT
+            )
+
+
+    @patch("pyocr.tesseract.get_version")
+    @patch("pyocr.tesseract.temp_dir")
+    @patch("subprocess.Popen")
     def test_detect_orientation_tesseract4_with_lang(self, Popen, temp_dir,
                                                      get_version):
         get_version.return_value = (4, 0, 0)
