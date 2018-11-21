@@ -446,9 +446,6 @@ def get_version():
 
     try:
         ver_string = ver_string.split(" ")[1]
-        index = ver_string.find("dev")
-        if index:
-            ver_string = ver_string[:index]
 
         els = ver_string.split(".")
         els = [digits_only(x) for x in els]

@@ -49,6 +49,18 @@ class TestTesseract(BaseTest):
         self.assertSequenceEqual(tesseract.get_version(), (4, 0, 0))
 
     @patch("subprocess.Popen")
+    def test_version_tesseract4dev(self, Popen):
+        message = (
+            "tesseract 4.00.00dev2\n leptonica-1.74.4\n"
+            "  libgif 5.1.4 : libjpeg 6b (libjpeg-turbo 1.5.1) : libpng 1.6.34 "
+            ": libtiff 4.0.9 : zlib 1.2.8 : libwebp 0.6.0 : libopenjp2 2.3.0\n"
+            "\n Found AVX\n Found SSE\n"
+        )
+        self.stdout.stdout.read.return_value = message.encode()
+        Popen.return_value = self.stdout
+        self.assertSequenceEqual(tesseract.get_version(), (4, 0, 0))
+
+    @patch("subprocess.Popen")
     def test_version_tesseract4alpha(self, Popen):
         message = (
             "tesseract 4.00.00alpha\n leptonica-1.74.4\n"
