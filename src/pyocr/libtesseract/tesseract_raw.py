@@ -1,4 +1,5 @@
 import ctypes
+import locale
 import logging
 import os
 import sys
@@ -347,6 +348,11 @@ if g_libtesseract:  # pragma: no cover
 
 def init(lang=None):
     assert(g_libtesseract)
+
+    # Tesseract 4 workaround
+    if get_version() == "4.0.0":
+        locale.setlocale(locale.LC_ALL, "C")
+
     handle = g_libtesseract.TessBaseAPICreate()
     try:
         if lang:
