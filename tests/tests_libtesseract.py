@@ -1,3 +1,4 @@
+import locale
 import os
 
 from ctypes import POINTER, cast, c_char_p, c_int
@@ -141,8 +142,10 @@ class TestLibTesseractRaw(BaseTest):
         self.handle = randint(0, 2**32-1)
         self.iterator = randint(0, 2**32-1)
 
+    @patch("locale.setlocale")
     @patch("pyocr.libtesseract.tesseract_raw.g_libtesseract")
-    def test_init(self, libtess):
+    def test_init_tesseract4(self, libtess, setlocale):
+        libtess.TessVersion.return_value = b"4.0.0"
         libtess.TessBaseAPICreate.return_value = self.handle
         for lang in (None, "eng", "fra", "jpn", "osd"):
             api = tesseract_raw.init(lang)
@@ -924,12 +927,14 @@ class TestLibTesseractText(BaseTest):
         raw.get_iterator.return_value = self.iterator
         raw.result_iterator_get_page_iterator.return_value = self.iterator
         raw.get_available_languages.return_value = ["eng", "fra", "jpn", "osd"]
-        raw.page_iterator_next.side_effect = (True, True, False)
+        raw.page_iterator_next.side_effect = (True, True, True, False)
         raw.page_iterator_bounding_box.return_value = (True, (0, 0, 0, 0))
         raw.result_iterator_get_utf8_text.side_effect = ("word1", "word2",
-                                                         "word3")
-        raw.page_iterator_is_at_beginning_of.side_effect = (True, False, False)
-        raw.page_iterator_is_at_final_element.side_effect = (False, False, True)
+                                                         None, "word3")
+        raw.page_iterator_is_at_beginning_of.side_effect = (True, False,
+                                                            False, False)
+        raw.page_iterator_is_at_final_element.side_effect = (False, False,
+                                                             False, True)
 
         self.assertEqual(
             libtesseract.image_to_string(self.image, builder=self.builder),
@@ -948,7 +953,7 @@ class TestLibTesseractText(BaseTest):
         raw.result_iterator_get_page_iterator.assert_called_once_with(
             self.iterator
         )
-        self.assertEqual(raw.page_iterator_is_at_beginning_of.call_count, 3)
+        self.assertEqual(raw.page_iterator_is_at_beginning_of.call_count, 4)
         raw.page_iterator_is_at_beginning_of.assert_called_with(
             self.iterator, raw.PageIteratorLevel.TEXTLINE)
 
@@ -963,18 +968,18 @@ class TestLibTesseractText(BaseTest):
                 call(self.iterator, raw.PageIteratorLevel.WORD),
             ]
         )
-        self.assertEqual(raw.page_iterator_is_at_final_element.call_count, 3)
+        self.assertEqual(raw.page_iterator_is_at_final_element.call_count, 4)
         raw.page_iterator_is_at_final_element.assert_called_with(
             self.iterator, raw.PageIteratorLevel.TEXTLINE,
             raw.PageIteratorLevel.WORD
         )
-        self.assertEqual(raw.result_iterator_get_utf8_text.call_count, 3)
+        self.assertEqual(raw.result_iterator_get_utf8_text.call_count, 4)
         raw.result_iterator_get_utf8_text.assert_called_with(
             self.iterator, raw.PageIteratorLevel.WORD)
-        self.assertEqual(raw.result_iterator_get_confidence.call_count, 3)
+        self.assertEqual(raw.result_iterator_get_confidence.call_count, 4)
         raw.result_iterator_get_confidence.assert_called_with(
             self.iterator, raw.PageIteratorLevel.WORD)
-        self.assertEqual(raw.page_iterator_next.call_count, 3)
+        self.assertEqual(raw.page_iterator_next.call_count, 4)
         raw.page_iterator_next.assert_called_with(
             self.iterator, raw.PageIteratorLevel.WORD)
         raw.cleanup.assert_called_once_with(self.handle)
