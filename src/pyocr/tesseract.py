@@ -29,7 +29,10 @@ from . import builders
 from . import util
 from .builders import DigitBuilder  # backward compatibility
 from .error import TesseractError  # backward compatibility
-from .util import digits_only
+from .util import (
+    digits_only,
+    to_unicode,
+)
 
 # CHANGE THIS IF TESSERACT IS NOT IN YOUR PATH, OR IS NAMED DIFFERENTLY
 TESSERACT_CMD = 'tesseract.exe' if os.name == 'nt' else 'tesseract'
@@ -103,7 +106,7 @@ class CharBoxBuilder(builders.BaseBuilder):
             The file_descriptor must support UTF-8 ! (see module 'codecs')
         """
         for box in boxes:
-            file_descriptor.write(str(box) + " 0\n")
+            file_descriptor.write(to_unicode(str(box)) + " 0\n")
 
     def __str__(self):
         return "Character boxes"

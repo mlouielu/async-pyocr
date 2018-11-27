@@ -1,6 +1,8 @@
 import os
 import unittest
 
+from codecs import open
+
 
 class BaseTest(unittest.TestCase):
     tool = None

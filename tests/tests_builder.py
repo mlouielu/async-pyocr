@@ -3,7 +3,10 @@ import unittest
 from io import StringIO
 from itertools import product
 from random import randint
-from unittest.mock import patch
+try:
+    from unittest.mock import patch
+except ImportError:
+    from mock import patch
 
 from pyocr import builders
 
@@ -47,14 +50,14 @@ class TestTextBuilder(unittest.TestCase):
                 self.assertNotIn("--singlecolumn", builder.cuneiform_args)
 
     def test_read_file(self):
-        txt = "first line\nsecond line\n0123456789\n🖨  "
+        txt = u"first line\nsecond line\n0123456789\n\U0001f5a8  "
         input_fh = StringIO(txt)
         output = self.builder.read_file(input_fh)
         self.assertEqual(output, txt.strip())
 
     def test_write_file(self):
         output = StringIO()
-        txt = "first line\nsecond line\n0123456789\n🖨  "
+        txt = u"first line\nsecond line\n0123456789\n\U0001f5a8  "
         self.builder.write_file(output, txt)
         output.seek(0)
         self.assertEqual(output.read(), txt)

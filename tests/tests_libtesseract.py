@@ -3,7 +3,10 @@ import os
 
 from ctypes import POINTER, cast, c_char_p, c_int
 from random import randint
-from unittest.mock import patch, call
+try:
+    from unittest.mock import patch, call
+except ImportError:
+    from mock import patch, call
 
 from PIL import Image
 
@@ -296,7 +299,7 @@ class TestLibTesseractRaw(BaseTest):
 
     @patch("pyocr.libtesseract.tesseract_raw.g_libtesseract")
     def test_set_debug_file(self, libtess):
-        for filename in ("file", b"file"):
+        for filename in (u"file", b"file"):
             tesseract_raw.set_debug_file(self.handle, filename)
             self.assertEqual(
                 libtess.TessBaseAPISetVariable.call_count,

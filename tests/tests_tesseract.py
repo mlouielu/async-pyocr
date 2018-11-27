@@ -1,9 +1,15 @@
 import os
 import subprocess
-import tempfile
 
 from io import StringIO
-from unittest.mock import patch, MagicMock
+try:
+    from unittest.mock import patch, MagicMock
+except ImportError:
+    from mock import patch, MagicMock
+try:
+    from tempfile import TemporaryDirectory
+except ImportError:
+    from backports.tempfile import TemporaryDirectory
 
 from PIL import Image
 
@@ -283,7 +289,7 @@ class TestTesseract(BaseTest):
         )
         self.stdout.stdout.read.return_value = message.encode()
         Popen.return_value = self.stdout
-        with tempfile.TemporaryDirectory(prefix="tess_") as tmpdir:
+        with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
@@ -319,7 +325,7 @@ class TestTesseract(BaseTest):
         )
         self.stdout.stdout.read.return_value = message.encode()
         Popen.return_value = self.stdout
-        with tempfile.TemporaryDirectory(prefix="tess_") as tmpdir:
+        with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
@@ -355,7 +361,7 @@ class TestTesseract(BaseTest):
         )
         self.stdout.stdout.read.return_value = message.encode()
         Popen.return_value = self.stdout
-        with tempfile.TemporaryDirectory(prefix="tess_") as tmpdir:
+        with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
@@ -385,7 +391,7 @@ class TestTesseract(BaseTest):
         )
         self.stdout.stdout.read.return_value = message.encode()
         Popen.return_value = self.stdout
-        with tempfile.TemporaryDirectory(prefix="tess_") as tmpdir:
+        with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
@@ -421,7 +427,7 @@ class TestTesseract(BaseTest):
         )
         self.stdout.stdout.read.return_value = message.encode()
         Popen.return_value = self.stdout
-        with tempfile.TemporaryDirectory(prefix="tess_") as tmpdir:
+        with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
@@ -456,7 +462,7 @@ class TestTesseract(BaseTest):
         )
         self.stdout.stdout.read.return_value = message.encode()
         Popen.return_value = self.stdout
-        with tempfile.TemporaryDirectory(prefix="tess_") as tmpdir:
+        with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
@@ -491,7 +497,7 @@ class TestTesseract(BaseTest):
         )
         self.stdout.stdout.read.return_value = message.encode()
         Popen.return_value = self.stdout
-        with tempfile.TemporaryDirectory(prefix="tess_") as tmpdir:
+        with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
@@ -521,7 +527,7 @@ class TestTesseract(BaseTest):
         )
         self.stdout.stdout.read.return_value = message.encode()
         Popen.return_value = self.stdout
-        with tempfile.TemporaryDirectory(prefix="tess_") as tmpdir:
+        with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
@@ -557,7 +563,7 @@ class TestTesseract(BaseTest):
         )
         self.stdout.stdout.read.return_value = message.encode()
         Popen.return_value = self.stdout
-        with tempfile.TemporaryDirectory(prefix="tess_") as tmpdir:
+        with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
@@ -598,7 +604,7 @@ class TestTesseractTxt(BaseTest):
         get_version.return_value = (4, 0, 0)
         run_tesseract.return_value = (0, "")
         copen.return_value = StringIO(self._get_file_content("text"))
-        with tempfile.TemporaryDirectory(prefix="tess_") as tmpdir:
+        with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
@@ -619,7 +625,7 @@ class TestTesseractTxt(BaseTest):
     def test_lang(self, run_tesseract, copen, temp_dir):
         run_tesseract.return_value = (0, "")
         copen.return_value = StringIO(self._get_file_content("text"))
-        with tempfile.TemporaryDirectory(prefix="tess_") as tmpdir:
+        with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
@@ -641,7 +647,7 @@ class TestTesseractTxt(BaseTest):
     def test_text(self, run_tesseract, copen, temp_dir):
         run_tesseract.return_value = (0, "")
         copen.return_value = StringIO(self._get_file_content("text"))
-        with tempfile.TemporaryDirectory(prefix="tess_") as tmpdir:
+        with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
@@ -663,7 +669,7 @@ class TestTesseractTxt(BaseTest):
     def test_text_error(self, run_tesseract, copen, temp_dir):
         run_tesseract.return_value = (1, "Error")
         copen.return_value = StringIO(self._get_file_content("text"))
-        with tempfile.TemporaryDirectory(prefix="tess_") as tmpdir:
+        with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
@@ -683,7 +689,7 @@ class TestTesseractTxt(BaseTest):
     def test_text_cannot_open_file(self, run_tesseract, copen, temp_dir):
         run_tesseract.return_value = (0, "")
         copen.side_effect = OSError("Error opening file")
-        with tempfile.TemporaryDirectory(prefix="tess_") as tmpdir:
+        with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
@@ -706,7 +712,7 @@ class TestTesseractTxt(BaseTest):
     def test_text_no_output(self, run_tesseract, copen, temp_dir):
         run_tesseract.return_value = (0, "No file output")
         copen.return_value = StringIO(self._get_file_content("text"))
-        with tempfile.TemporaryDirectory(prefix="tess_") as tmpdir:
+        with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
@@ -738,7 +744,7 @@ class TestTesseractCharBox(BaseTest):
     def test_char(self, run_tesseract, copen, temp_dir):
         run_tesseract.return_value = (0, "")
         copen.return_value = StringIO(self._get_file_content("boxes"))
-        with tempfile.TemporaryDirectory(prefix="tess_") as tmpdir:
+        with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
@@ -761,7 +767,7 @@ class TestTesseractCharBox(BaseTest):
     def test_char_error(self, run_tesseract, copen, temp_dir):
         run_tesseract.return_value = (1, "Error")
         copen.return_value = StringIO(self._get_file_content("boxes"))
-        with tempfile.TemporaryDirectory(prefix="tess_") as tmpdir:
+        with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
@@ -781,7 +787,7 @@ class TestTesseractCharBox(BaseTest):
     def test_char_no_output(self, run_tesseract, copen, temp_dir):
         run_tesseract.return_value = (0, "No file output")
         copen.return_value = StringIO(self._get_file_content("boxes"))
-        with tempfile.TemporaryDirectory(prefix="tess_") as tmpdir:
+        with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
@@ -871,7 +877,7 @@ class TestTesseractDigits(BaseTest):
     def test_digits(self, run_tesseract, copen, temp_dir):
         run_tesseract.return_value = (0, "")
         copen.return_value = StringIO(self._get_file_content("digits"))
-        with tempfile.TemporaryDirectory(prefix="tess_") as tmpdir:
+        with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
@@ -903,7 +909,7 @@ class TestTesseractWordBox(BaseTest):
     def test_word(self, run_tesseract, copen, temp_dir):
         run_tesseract.return_value = (0, "")
         copen.return_value = StringIO(self._get_file_content("words"))
-        with tempfile.TemporaryDirectory(prefix="tess_") as tmpdir:
+        with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
@@ -926,7 +932,7 @@ class TestTesseractWordBox(BaseTest):
     def test_word_error(self, run_tesseract, copen, temp_dir):
         run_tesseract.return_value = (1, "Error")
         copen.return_value = StringIO(self._get_file_content("words"))
-        with tempfile.TemporaryDirectory(prefix="tess_") as tmpdir:
+        with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
@@ -947,7 +953,7 @@ class TestTesseractWordBox(BaseTest):
     def test_word_no_output(self, run_tesseract, copen, temp_dir):
         run_tesseract.return_value = (0, "No file output")
         copen.return_value = StringIO(self._get_file_content("words"))
-        with tempfile.TemporaryDirectory(prefix="tess_") as tmpdir:
+        with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
@@ -978,7 +984,7 @@ class TestTesseractLineBox(BaseTest):
     def test_line(self, run_tesseract, copen, temp_dir):
         run_tesseract.return_value = (0, "")
         copen.return_value = StringIO(self._get_file_content("tesseract.lines"))
-        with tempfile.TemporaryDirectory(prefix="tess_") as tmpdir:
+        with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
@@ -1001,7 +1007,7 @@ class TestTesseractLineBox(BaseTest):
     def test_line_error(self, run_tesseract, copen, temp_dir):
         run_tesseract.return_value = (1, "Error")
         copen.return_value = StringIO(self._get_file_content("tesseract.lines"))
-        with tempfile.TemporaryDirectory(prefix="tess_") as tmpdir:
+        with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
@@ -1022,7 +1028,7 @@ class TestTesseractLineBox(BaseTest):
     def test_line_no_output(self, run_tesseract, copen, temp_dir):
         run_tesseract.return_value = (0, "No file output")
         copen.return_value = StringIO(self._get_file_content("tesseract.lines"))
-        with tempfile.TemporaryDirectory(prefix="tess_") as tmpdir:
+        with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
@@ -1053,7 +1059,7 @@ class TestTesseractDigitsLineBox(BaseTest):
     def test_line(self, run_tesseract, copen, temp_dir):
         run_tesseract.return_value = (0, "")
         copen.return_value = StringIO(self._get_file_content("digits.lines"))
-        with tempfile.TemporaryDirectory(prefix="tess_") as tmpdir:
+        with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
@@ -1076,7 +1082,7 @@ class TestTesseractDigitsLineBox(BaseTest):
     def test_line_error(self, run_tesseract, copen, temp_dir):
         run_tesseract.return_value = (1, "Error")
         copen.return_value = StringIO(self._get_file_content("digits.lines"))
-        with tempfile.TemporaryDirectory(prefix="tess_") as tmpdir:
+        with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
@@ -1097,7 +1103,7 @@ class TestTesseractDigitsLineBox(BaseTest):
     def test_line_no_output(self, run_tesseract, copen, temp_dir):
         run_tesseract.return_value = (0, "No file output")
         copen.return_value = StringIO(self._get_file_content("digits.lines"))
-        with tempfile.TemporaryDirectory(prefix="tess_") as tmpdir:
+        with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
