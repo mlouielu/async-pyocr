@@ -17,7 +17,3 @@ class BaseTest(unittest.TestCase):
                                "data", filename), encoding="utf-8") as fh:
             content = fh.read()
         return content
-
-    def _get_file_path(self, filename):
-        return os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                            "data", filename)

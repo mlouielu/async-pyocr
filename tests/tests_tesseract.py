@@ -25,6 +25,7 @@ class TestTesseract(BaseTest):
     """
     def setUp(self):
         self.stdout = MagicMock()
+        self.image = Image.new(mode="RGB", size=(1, 1))
         self.message = (
             "tesseract 4.0.0\n leptonica-1.76.0\n"
             "  libgif 5.1.4 : libjpeg 6b (libjpeg-turbo 1.5.2) : libpng 1.6.34 "
@@ -221,10 +222,6 @@ class TestTesseract(BaseTest):
     @patch("pyocr.tesseract.get_version")
     @patch("subprocess.Popen")
     def test_run_tesseract(self, Popen, get_version):
-        image = Image.open(self._get_file_path("text.jpg"))
-        if image.mode != "RGB":
-            image = image.convert("RGB")
-
         message = (
             "Tesseract Open Source OCR Engine v4.0.0 with Leptonica\n"
         )
@@ -232,7 +229,7 @@ class TestTesseract(BaseTest):
         Popen.return_value = self.stdout
 
         with tesseract.temp_dir() as tmpdir:
-            image.save(os.path.join(tmpdir, "input.bmp"))
+            self.image.save(os.path.join(tmpdir, "input.bmp"))
             status, error = tesseract.run_tesseract(
                 "input.bmp",
                 "output",
@@ -252,7 +249,7 @@ class TestTesseract(BaseTest):
         get_version.return_value = (4, 0, 0)
         builder = builders.TextBuilder()
         with tesseract.temp_dir() as tmpdir:
-            image.save(os.path.join(tmpdir, "input2.bmp"))
+            self.image.save(os.path.join(tmpdir, "input2.bmp"))
             status, error = tesseract.run_tesseract(
                 "input2.bmp",
                 "output2",
@@ -278,7 +275,6 @@ class TestTesseract(BaseTest):
     @patch("subprocess.Popen")
     def test_detect_orientation_tesseract4(self, Popen, temp_dir, get_version):
         get_version.return_value = (4, 0, 0)
-        image = Image.open(self._get_file_path("orientation.png"))
         message = (
             "Page number: 0\n"
             "Orientation in degrees: 90\n"
@@ -293,7 +289,7 @@ class TestTesseract(BaseTest):
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
-            result = tesseract.detect_orientation(image)
+            result = tesseract.detect_orientation(self.image)
             self.assertEqual(result["angle"], 90)
             self.assertEqual(result["confidence"], 9.30)
             Popen.assert_called_once_with(
@@ -310,11 +306,12 @@ class TestTesseract(BaseTest):
     @patch("pyocr.tesseract.get_version")
     @patch("pyocr.tesseract.temp_dir")
     @patch("subprocess.Popen")
-    def test_detect_orientation_tesseract4_rgb_image(self, Popen,
-                                                     temp_dir, get_version):
+    def test_detect_orientation_tesseract4_non_rgb_image(self, Popen,
+                                                         temp_dir, get_version):
+        """This tests that detect_orientation works with non RGB mode images and
+        that image is converted in function."""
+        image = self.image.convert("L")
         get_version.return_value = (4, 0, 0)
-        image = Image.open(self._get_file_path("orientation.png"))
-        image = image.convert("RGB")
         message = (
             "Page number: 0\n"
             "Orientation in degrees: 90\n"
@@ -350,7 +347,6 @@ class TestTesseract(BaseTest):
     def test_detect_orientation_tesseract4_with_lang(self, Popen, temp_dir,
                                                      get_version):
         get_version.return_value = (4, 0, 0)
-        image = Image.open(self._get_file_path("orientation.png"))
         message = (
             "Page number: 0\n"
             "Orientation in degrees: 90\n"
@@ -365,7 +361,7 @@ class TestTesseract(BaseTest):
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
-            result = tesseract.detect_orientation(image, lang="fra")
+            result = tesseract.detect_orientation(self.image, lang="fra")
             self.assertEqual(result["angle"], 90)
             self.assertEqual(result["confidence"], 9.30)
             Popen.assert_called_once_with(
@@ -385,7 +381,6 @@ class TestTesseract(BaseTest):
     def test_detect_orientation_tesseract4_error(self, Popen, temp_dir,
                                                  get_version):
         get_version.return_value = (4, 0, 0)
-        image = Image.open(self._get_file_path("orientation.png"))
         message = (
             "Could not initialize tesseract\n"
         )
@@ -396,7 +391,7 @@ class TestTesseract(BaseTest):
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
             with self.assertRaises(tesseract.TesseractError) as te:
-                tesseract.detect_orientation(image)
+                tesseract.detect_orientation(self.image)
             Popen.assert_called_once_with(
                 ["tesseract", "input.bmp", "stdout", "--psm", "0"],
                 stdin=subprocess.PIPE,
@@ -416,7 +411,6 @@ class TestTesseract(BaseTest):
     def test_detect_orientation_tesseract4_bad_output(self, Popen, temp_dir,
                                                       get_version):
         get_version.return_value = (4, 0, 0)
-        image = Image.open(self._get_file_path("orientation.png"))
         message = (
             "Page number: 0\n"
             "Orientation in degrees: ABC\n"
@@ -432,7 +426,7 @@ class TestTesseract(BaseTest):
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
             with self.assertRaises(tesseract.TesseractError) as te:
-                tesseract.detect_orientation(image)
+                tesseract.detect_orientation(self.image)
             Popen.assert_called_once_with(
                 ["tesseract", "input.bmp", "stdout", "--psm", "0"],
                 stdin=subprocess.PIPE,
@@ -451,7 +445,6 @@ class TestTesseract(BaseTest):
     @patch("subprocess.Popen")
     def test_detect_orientation_tesseract3(self, Popen, temp_dir, get_version):
         get_version.return_value = (3, 5, 0)
-        image = Image.open(self._get_file_path("orientation.png"))
         message = (
             "Page number: 0\n"
             "Orientation in degrees: 90\n"
@@ -466,7 +459,7 @@ class TestTesseract(BaseTest):
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
-            result = tesseract.detect_orientation(image)
+            result = tesseract.detect_orientation(self.image)
             self.assertEqual(result["angle"], 90)
             self.assertEqual(result["confidence"], 9.30)
             Popen.assert_called_once_with(
@@ -486,7 +479,6 @@ class TestTesseract(BaseTest):
     def test_detect_orientation_tesseract3_with_lang(self, Popen, temp_dir,
                                                      get_version):
         get_version.return_value = (3, 5, 0)
-        image = Image.open(self._get_file_path("orientation.png"))
         message = (
             "Page number: 0\n"
             "Orientation in degrees: 90\n"
@@ -501,7 +493,7 @@ class TestTesseract(BaseTest):
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
-            result = tesseract.detect_orientation(image, lang="fra")
+            result = tesseract.detect_orientation(self.image, lang="fra")
             self.assertEqual(result["angle"], 90)
             self.assertEqual(result["confidence"], 9.30)
             Popen.assert_called_once_with(
@@ -521,7 +513,6 @@ class TestTesseract(BaseTest):
     def test_detect_orientation_tesseract3_error(self, Popen, temp_dir,
                                                  get_version):
         get_version.return_value = (3, 5, 0)
-        image = Image.open(self._get_file_path("orientation.png"))
         message = (
             "Could not initialize tesseract\n"
         )
@@ -532,7 +523,7 @@ class TestTesseract(BaseTest):
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
             with self.assertRaises(tesseract.TesseractError) as te:
-                tesseract.detect_orientation(image)
+                tesseract.detect_orientation(self.image)
             Popen.assert_called_once_with(
                 ["tesseract", "input.bmp", "stdout", "-psm", "0"],
                 stdin=subprocess.PIPE,
@@ -552,7 +543,6 @@ class TestTesseract(BaseTest):
     def test_detect_orientation_tesseract3_bad_output(self, Popen, temp_dir,
                                                       get_version):
         get_version.return_value = (3, 5, 0)
-        image = Image.open(self._get_file_path("orientation.png"))
         message = (
             "Page number: 0\n"
             "Orientation in degrees: ABC\n"
@@ -568,7 +558,7 @@ class TestTesseract(BaseTest):
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
             with self.assertRaises(tesseract.TesseractError) as te:
-                tesseract.detect_orientation(image)
+                tesseract.detect_orientation(self.image)
             Popen.assert_called_once_with(
                 ["tesseract", "input.bmp", "stdout", "-psm", "0"],
                 stdin=subprocess.PIPE,
@@ -591,7 +581,7 @@ class TestTesseractTxt(BaseTest):
     @patch("pyocr.tesseract.get_version")
     def setUp(self, get_version):
         get_version.return_value = (4, 0, 0)
-        self.image = Image.open(self._get_file_path("text.jpg"))
+        self.image = Image.new(mode="RGB", size=(1, 1))
         self.builder = builders.TextBuilder()
 
     @patch("pyocr.tesseract.get_version")
@@ -655,6 +645,30 @@ class TestTesseractTxt(BaseTest):
                 fh.write("")
             result = tesseract.image_to_string(self.image,
                                                builder=self.builder)
+
+        self.assertEqual(result, self._get_file_content("text").strip())
+        run_tesseract.assert_called_once_with(
+            "input.bmp", "output", cwd=tmpdir, lang=None,
+            flags=self.builder.tesseract_flags,
+            configs=self.builder.tesseract_configs,
+        )
+
+    @patch("pyocr.tesseract.temp_dir")
+    @patch("codecs.open")
+    @patch("pyocr.tesseract.run_tesseract")
+    def test_text_non_rgb_image(self, run_tesseract, copen, temp_dir):
+        """This tests that image_to_string works with non RGB mode images and
+        that image is converted in function."""
+        image = self.image.convert("L")
+        run_tesseract.return_value = (0, "")
+        copen.return_value = StringIO(self._get_file_content("text"))
+        with TemporaryDirectory(prefix="tess_") as tmpdir:
+            enter = MagicMock()
+            enter.__enter__.return_value = tmpdir
+            temp_dir.return_value = enter
+            with open(os.path.join(tmpdir, "output.txt"), "w") as fh:
+                fh.write("")
+            result = tesseract.image_to_string(image, builder=self.builder)
 
         self.assertEqual(result, self._get_file_content("text").strip())
         run_tesseract.assert_called_once_with(
@@ -735,7 +749,7 @@ class TestTesseractCharBox(BaseTest):
     @patch("pyocr.tesseract.get_version")
     def setUp(self, get_version):
         get_version.return_value = (4, 0, 0)
-        self.image = Image.open(self._get_file_path("paragraph.jpg"))
+        self.image = Image.new(mode="RGB", size=(1, 1))
         self.builder = tesseract.CharBoxBuilder()
 
     @patch("pyocr.tesseract.temp_dir")
@@ -870,7 +884,7 @@ class TestTesseractDigits(BaseTest):
     def setUp(self, get_version):
         get_version.return_value = (4, 0, 0)
         self.builder = builders.DigitBuilder()
-        self.image = Image.open(self._get_file_path("digits.png"))
+        self.image = Image.new(mode="RGB", size=(1, 1))
 
     @patch("pyocr.tesseract.temp_dir")
     @patch("codecs.open")
@@ -901,7 +915,7 @@ class TestTesseractWordBox(BaseTest):
     @patch("pyocr.tesseract.get_version")
     def setUp(self, get_version):
         get_version.return_value = (4, 0, 0)
-        self.image = Image.open(self._get_file_path("paragraph.jpg"))
+        self.image = Image.new(mode="RGB", size=(1, 1))
         self.builder = builders.WordBoxBuilder()
 
     @patch("pyocr.tesseract.temp_dir")
@@ -976,7 +990,7 @@ class TestTesseractLineBox(BaseTest):
     @patch("pyocr.tesseract.get_version")
     def setUp(self, get_version):
         get_version.return_value = (4, 0, 0)
-        self.image = Image.open(self._get_file_path("paragraph.jpg"))
+        self.image = Image.new(mode="RGB", size=(1, 1))
         self.builder = builders.LineBoxBuilder()
 
     @patch("pyocr.tesseract.temp_dir")
@@ -1051,7 +1065,7 @@ class TestTesseractDigitsLineBox(BaseTest):
     @patch("pyocr.tesseract.get_version")
     def setUp(self, get_version):
         get_version.return_value = (4, 0, 0)
-        self.image = Image.open(self._get_file_path("digits.png"))
+        self.image = Image.new(mode="RGB", size=(1, 1))
         self.builder = builders.DigitLineBoxBuilder()
 
     @patch("pyocr.tesseract.temp_dir")

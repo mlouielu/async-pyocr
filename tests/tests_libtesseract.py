@@ -10,7 +10,8 @@ except ImportError:
 
 from PIL import Image
 
-from pyocr import builders, libtesseract
+from pyocr import builders
+from pyocr import libtesseract
 from pyocr.error import TesseractError
 from pyocr.libtesseract import tesseract_raw
 
@@ -23,6 +24,7 @@ class TestLibTesseract(BaseTest):
     """
     def setUp(self):
         self.handle = randint(0, 2**32-1)
+        self.image = Image.new(mode="RGB", size=(1, 1))
 
     @patch("pyocr.libtesseract.tesseract_raw.g_libtesseract")
     def test_available(self, libtess):
@@ -113,9 +115,8 @@ class TestLibTesseract(BaseTest):
             "confidence": 87,
         }
         raw.detect_os.return_value = expected
-        image = Image.open(self._get_file_path("text.jpg"))
         self.assertEqual(
-            libtesseract.detect_orientation(image),
+            libtesseract.detect_orientation(self.image),
             {
                 "angle": 90,
                 "confidence": 87,
@@ -125,16 +126,15 @@ class TestLibTesseract(BaseTest):
         raw.set_page_seg_mode.assert_called_once_with(
             self.handle, raw.PageSegMode.OSD_ONLY
         )
-        raw.set_image.assert_called_once_with(self.handle, image)
+        raw.set_image.assert_called_once_with(self.handle, self.image)
         raw.detect_os.assert_called_once_with(self.handle)
 
     @patch("pyocr.libtesseract.tesseract_raw")
     def test_detect_orientation_error(self, raw):
         raw.init.return_value = self.handle
         raw.detect_os.return_value = {"confidence": 0}
-        image = Image.open(self._get_file_path("text.jpg"))
         with self.assertRaises(TesseractError) as te:
-            libtesseract.detect_orientation(image)
+            libtesseract.detect_orientation(self.image)
         self.assertEqual(te.exception.status, "no script")
         self.assertEqual(te.exception.message, "no script detected")
 
@@ -144,6 +144,7 @@ class TestLibTesseractRaw(BaseTest):
     def setUp(self):
         self.handle = randint(0, 2**32-1)
         self.iterator = randint(0, 2**32-1)
+        self.image = Image.new("RGB", size=(1, 1))
 
     @patch("locale.setlocale")
     @patch("pyocr.libtesseract.tesseract_raw.g_libtesseract")
@@ -337,22 +338,16 @@ class TestLibTesseractRaw(BaseTest):
 
     @patch("pyocr.libtesseract.tesseract_raw.g_libtesseract")
     def test_set_image(self, libtess):
-        image = Image.open(self._get_file_path("text.jpg"))
-        dpi = image.info.get("dpi", [tesseract_raw.DPI_DEFAULT])[0]
-        tesseract_raw.set_image(self.handle, image)
-        self.assertEqual(
-            libtess.TessBaseAPISetImage.call_count,
-            1
-        )
+        tesseract_raw.set_image(self.handle, self.image)
+        self.assertEqual(libtess.TessBaseAPISetImage.call_count, 1)
         args = libtess.TessBaseAPISetImage.call_args[0]
         self.assertEqual(len(args), 6)
         self.assertEqual(args[0].value, self.handle)
-        image = image.convert("RGB")
-        self.assertEqual(args[1], image.tobytes("raw", "RGB"))
-        self.assertEqual(args[2].value, image.width)
-        self.assertEqual(args[3].value, image.height)
+        self.assertEqual(args[1], self.image.tobytes("raw", "RGB"))
+        self.assertEqual(args[2].value, self.image.width)
+        self.assertEqual(args[3].value, self.image.height)
         self.assertEqual(args[4].value, 3)
-        self.assertEqual(args[5].value, image.width * 3)
+        self.assertEqual(args[5].value, self.image.width * 3)
 
     @patch("pyocr.libtesseract.tesseract_raw.g_libtesseract")
     def test_recognize(self, libtess):
@@ -779,7 +774,7 @@ class TestLibTesseractText(BaseTest):
     @patch("pyocr.tesseract.get_version")
     def setUp(self, get_version):
         get_version.return_value = (4, 0, 0)
-        self.image = Image.open(self._get_file_path("text.jpg"))
+        self.image = Image.new(mode="RGB", size=(1, 1))
         self.builder = builders.TextBuilder()
         self.handle = randint(0, 2**32-1)
         self.iterator = randint(0, 2**32-1)
@@ -1022,7 +1017,7 @@ class TestLibTesseractDigits(BaseTest):
     def setUp(self, get_version):
         get_version.return_value = (4, 0, 0)
         self.builder = builders.DigitBuilder()
-        self.image = Image.open(self._get_file_path("digits.png"))
+        self.image = Image.new(mode="RGB", size=(1, 1))
         self.handle = randint(0, 2**32-1)
         self.iterator = randint(0, 2**32-1)
 
@@ -1093,7 +1088,7 @@ class TestLibTesseractWordBox(BaseTest):
     def setUp(self, get_version):
         get_version.return_value = (4, 0, 0)
         self.builder = builders.WordBoxBuilder()
-        self.image = Image.open(self._get_file_path("paragraph.jpg"))
+        self.image = Image.new("RGB", size=(1, 1))
         self.handle = randint(0, 2**32-1)
         self.iterator = randint(0, 2**32-1)
 
@@ -1196,7 +1191,7 @@ class TestLibTesseractLineBox(BaseTest):
     @patch("pyocr.tesseract.get_version")
     def setUp(self, get_version):
         get_version.return_value = (4, 0, 0)
-        self.image = Image.open(self._get_file_path("paragraph.jpg"))
+        self.image = Image.new(mode="RGB", size=(1, 1))
         self.builder = builders.LineBoxBuilder()
         self.handle = randint(0, 2**32-1)
         self.iterator = randint(0, 2**32-1)
@@ -1302,7 +1297,7 @@ class TestLibTesseractDigitsLineBox(BaseTest):
     @patch("pyocr.tesseract.get_version")
     def setUp(self, get_version):
         get_version.return_value = (4, 0, 0)
-        self.image = Image.open(self._get_file_path("paragraph.jpg"))
+        self.image = Image.new(mode="RGB", size=(1, 1))
         self.builder = builders.DigitLineBoxBuilder()
         self.handle = randint(0, 2**32-1)
         self.iterator = randint(0, 2**32-1)
@@ -1404,7 +1399,7 @@ class TestLibTesseractDigitsLineBox(BaseTest):
 class TestLibTesseractPDF(BaseTest):
 
     def setUp(self):
-        self.image = Image.open(self._get_file_path("paragraph.jpg"))
+        self.image = Image.new(mode="RGB", size=(1, 1))
         self.handle = randint(0, 2**32-1)
 
     @patch("pyocr.libtesseract.tesseract_raw")

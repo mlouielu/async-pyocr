@@ -8,8 +8,8 @@ except ImportError:
 
 from PIL import Image
 
-from pyocr import cuneiform
 from pyocr import builders
+from pyocr import cuneiform
 
 from .tests_base import BaseTest
 
@@ -87,7 +87,8 @@ class TestCuneiformTxt(BaseTest):
     def setUp(self, get_version):
         get_version.return_value = (4, 0, 0)
         self.builder = builders.TextBuilder()
-        self.image = Image.open(self._get_file_path("text.jpg"))
+        self.image = Image.new(mode="RGB", size=(1, 1))
+        self.text_file = StringIO(self._get_file_content("text"))
         self.stdout = MagicMock()
         self.stdout.stdout.read.return_value = (
             "Cuneiform for Linux 1.1.0\n".encode()
@@ -106,7 +107,7 @@ class TestCuneiformTxt(BaseTest):
                                                       temp_file, get_version):
         get_version.return_value = (4, 0, 0)
         Popen.return_value = self.stdout
-        copen.return_value = StringIO(self._get_file_content("text"))
+        copen.return_value = self.text_file
         temp_file.return_value = self.enter
         output = cuneiform.image_to_string(self.image)
         self.assertEqual(output, self._get_file_content("text").strip())
@@ -121,7 +122,7 @@ class TestCuneiformTxt(BaseTest):
     @patch("subprocess.Popen")
     def test_lang(self, Popen, copen, temp_file):
         Popen.return_value = self.stdout
-        copen.return_value = StringIO(self._get_file_content("text"))
+        copen.return_value = self.text_file
         temp_file.return_value = self.enter
         output = cuneiform.image_to_string(self.image, lang="fra",
                                            builder=self.builder)
@@ -138,7 +139,7 @@ class TestCuneiformTxt(BaseTest):
     @patch("subprocess.Popen")
     def test_text(self, Popen, copen, temp_file):
         Popen.return_value = self.stdout
-        copen.return_value = StringIO(self._get_file_content("text"))
+        copen.return_value = self.text_file
         temp_file.return_value = self.enter
         output = cuneiform.image_to_string(self.image,
                                            builder=self.builder)
@@ -162,6 +163,24 @@ class TestCuneiformTxt(BaseTest):
         self.assertEqual(ce.exception.status, 1)
         self.assertEqual(ce.exception.message, message)
 
+    @patch("pyocr.cuneiform.temp_file")
+    @patch("codecs.open")
+    @patch("subprocess.Popen")
+    def test_text_non_rgb_image(self, Popen, copen, temp_file):
+        """This tests that image_to_string works with non RGB mode images and
+        that image is converted in function."""
+        image = self.image.convert("L")
+        Popen.return_value = self.stdout
+        copen.return_value = self.text_file
+        temp_file.return_value = self.enter
+        output = cuneiform.image_to_string(image, builder=self.builder)
+        self.assertEqual(output, self._get_file_content("text").strip())
+        Popen.assert_called_once_with(
+            ["cuneiform", "-f", "text", "-o", self.tmp_filename, "-"],
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT
+        )
+
 
 class TestCuneiformDigits(BaseTest):
 
@@ -169,16 +188,15 @@ class TestCuneiformDigits(BaseTest):
     def setUp(self, get_version):
         get_version.return_value = (4, 0, 0)
         self.builder = builders.DigitBuilder()
+        self.image = Image.new(mode="RGB", size=(1, 1))
 
     def test_digits_not_implemented(self):
-        image = Image.open(self._get_file_path("digits.png"))
         with self.assertRaises(NotImplementedError):
-            cuneiform.image_to_string(image, builder=self.builder)
+            cuneiform.image_to_string(self.image, builder=self.builder)
 
     def test_digits_box_not_implemented(self):
-        image = Image.open(self._get_file_path("digits.png"))
         with self.assertRaises(NotImplementedError):
-            cuneiform.image_to_string(image,
+            cuneiform.image_to_string(self.image,
                                       builder=self.builder)
 
 
@@ -190,7 +208,8 @@ class TestCuneiformWordBox(BaseTest):
     def setUp(self, get_version):
         get_version.return_value = (4, 0, 0)
         self.builder = builders.WordBoxBuilder()
-        self.image = Image.open(self._get_file_path("paragraph.jpg"))
+        self.image = Image.new(mode="RGB", size=(1, 1))
+        self.text_file = StringIO(self._get_file_content("cuneiform.words"))
         self.stdout = MagicMock()
         self.stdout.stdout.read.return_value = (
             "Cuneiform for Linux 1.1.0\n".encode()
@@ -206,7 +225,7 @@ class TestCuneiformWordBox(BaseTest):
     @patch("subprocess.Popen")
     def test_word(self, Popen, copen, temp_file):
         Popen.return_value = self.stdout
-        copen.return_value = StringIO(self._get_file_content("cuneiform.words"))
+        copen.return_value = self.text_file
         temp_file.return_value = self.enter
         output = cuneiform.image_to_string(self.image,
                                            builder=self.builder)
@@ -242,7 +261,8 @@ class TestCuneiformLineBox(BaseTest):
     def setUp(self, get_version):
         get_version.return_value = (4, 0, 0)
         self.builder = builders.LineBoxBuilder()
-        self.image = Image.open(self._get_file_path("paragraph.jpg"))
+        self.image = Image.new(mode="RGB", size=(1, 1))
+        self.text_file = StringIO(self._get_file_content("cuneiform.lines"))
         self.stdout = MagicMock()
         self.stdout.stdout.read.return_value = (
             "Cuneiform for Linux 1.1.0\n".encode()
@@ -258,7 +278,7 @@ class TestCuneiformLineBox(BaseTest):
     @patch("subprocess.Popen")
     def test_line(self, Popen, copen, temp_file):
         Popen.return_value = self.stdout
-        copen.return_value = StringIO(self._get_file_content("cuneiform.lines"))
+        copen.return_value = self.text_file
         temp_file.return_value = self.enter
         output = cuneiform.image_to_string(self.image,
                                            builder=self.builder)
