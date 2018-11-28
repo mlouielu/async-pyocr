@@ -106,7 +106,7 @@ class CharBoxBuilder(builders.BaseBuilder):
             The file_descriptor must support UTF-8 ! (see module 'codecs')
         """
         for box in boxes:
-            file_descriptor.write(to_unicode(str(box)) + " 0\n")
+            file_descriptor.write(box.get_unicode_string() + " 0\n")
 
     def __str__(self):
         return "Character boxes"

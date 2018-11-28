@@ -848,13 +848,14 @@ class TestCharBoxBuilder(BaseTest):
             builders.Box("b", ((11, 12), (13, 14))),
             builders.Box("c", ((12, 13), (14, 15))),
             builders.Box("d", ((13, 14), (15, 16)), 87),
+            builders.Box(u"\xe9", ((14, 15), (16, 17)), 88),
         ]
         builder.write_file(output, boxes)
         output.seek(0)
         output = output.read()
         for box in boxes:
             self.assertIn(box.content, output)
-            self.assertIn("{} {} {} {}".format(
+            self.assertIn(u"{} {} {} {}".format(
                 box.position[0][0], box.position[0][1],
                 box.position[1][0], box.position[1][1],
             ), output)
