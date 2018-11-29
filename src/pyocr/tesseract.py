@@ -30,10 +30,7 @@ from . import builders
 from . import util
 from .builders import DigitBuilder  # backward compatibility
 from .error import TesseractError  # backward compatibility
-from .util import (
-    digits_only,
-    to_unicode,
-)
+from .util import digits_only
 
 try:
     FileNotFoundError

@@ -17,7 +17,6 @@ https://github.com/openpaperwork/pyocr#readme
 
 import codecs
 from io import BytesIO
-import os
 import re
 import subprocess
 import tempfile

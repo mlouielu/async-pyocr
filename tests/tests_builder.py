@@ -30,7 +30,8 @@ class TestTextBuilder(unittest.TestCase):
     def test_init_cuneiform_params(self, get_version):
         get_version.return_value = (4, 0, 0)
         # XXX Maybe overkill?
-        for cun_dotmat, cun_fax, cun_sglcol in product(*((False, True),) *3):
+        # this check all combinations of parameters
+        for cun_dotmat, cun_fax, cun_sglcol in product(*((False, True),) * 3):
             builder = builders.TextBuilder(
                 cuneiform_dotmatrix=cun_dotmat,
                 cuneiform_fax=cun_fax,
@@ -178,7 +179,6 @@ class TestWordBoxBuilder(BaseTest):
         self.assertEqual(self.builder.word_boxes[0], box)
 
     def test_end_line(self):
-        box = builders.Box("word", ((1, 2), (3, 4)))
         before = list(self.builder.word_boxes)
         self.builder.end_line()
         self.assertEqual(self.builder.word_boxes, before)
@@ -222,7 +222,7 @@ class TestLineBoxBuilder(BaseTest):
             self.assertEqual(builder.tesseract_layout, 1)
 
     @patch("pyocr.tesseract.get_version")
-    def test_init_tesseract_version_3(self, get_version):
+    def test_init_tesseract_version_4(self, get_version):
         get_version.return_value = (4, 0, 0)
         builder = builders.LineBoxBuilder()
         self.assertListEqual(builder.tesseract_flags, ["--psm", "1"])
@@ -270,10 +270,12 @@ class TestLineBoxBuilder(BaseTest):
         position = ((1, 2), (3, 4))
         self.builder.start_line(position)
         self.assertEqual(len(self.builder.lines), 1)
-        self.assertListEqual(self.builder.lines, [builders.LineBox([], position)])
+        self.assertListEqual(self.builder.lines,
+                             [builders.LineBox([], position)])
         self.builder.start_line(position)
         self.assertEqual(len(self.builder.lines), 1)
-        self.assertListEqual(self.builder.lines, [builders.LineBox([], position)])
+        self.assertListEqual(self.builder.lines,
+                             [builders.LineBox([], position)])
 
     def test_add_word_no_line(self):
         box = builders.Box("word", ((1, 2), (3, 4)), 42)
@@ -300,7 +302,8 @@ class TestLineBoxBuilder(BaseTest):
         for line in lines:
             self.builder.start_line(line.position)
             for word in line.word_boxes:
-                self.builder.add_word(word.content, word.position, word.confidence)
+                self.builder.add_word(word.content, word.position,
+                                      word.confidence)
             self.builder.end_line()  # could be useful in future
         output = self.builder.get_output()
         for line, line_expected in zip(output, lines):

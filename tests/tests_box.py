@@ -40,13 +40,14 @@ class TestBox(unittest.TestCase):
 
     @unittest.skipUnless(sys.version_info < (3, 0), "python2 box str")
     def test_str_python2(self):
-        self.assertEqual(str(self.box_unicode), u"\xe9 1 2 3 4".encode("utf-8"))
+        self.assertEqual(str(self.box_unicode),
+                         u"\xe9 1 2 3 4".encode("utf-8"))
 
     @unittest.skipIf(sys.version_info < (3, 0), "python3 box str")
     def test_str_python3(self):
         self.assertEqual(str(self.box_unicode), "\xe9 1 2 3 4")
 
-    def test_box_not_equal_None(self):
+    def test_box_not_equal_none(self):
         self.assertNotEqual(self.box1, None)
 
     def test_box_equal(self):
@@ -132,7 +133,8 @@ class TestLineBox(unittest.TestCase):
     def test_str_python2(self):
         self.assertEqual(
             str(self.line_unicode),
-            u"[\n  word1 15 22 23 30\n  \xe9 1 2 3 4\n] 1 2 3 4".encode("utf-8")
+            (u"[\n  word1 15 22 23 30"
+             u"\n  \xe9 1 2 3 4\n] 1 2 3 4").encode("utf-8")
         )
 
     @unittest.skipIf(sys.version_info < (3, 0), "python3 line str")
@@ -142,7 +144,7 @@ class TestLineBox(unittest.TestCase):
             "[\n  word1 15 22 23 30\n  \xe9 1 2 3 4\n] 1 2 3 4"
         )
 
-    def test_line_not_equal_None(self):
+    def test_line_not_equal_none(self):
         self.assertNotEqual(self.line1, None)
 
     def test_box_equal(self):

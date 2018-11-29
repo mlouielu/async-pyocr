@@ -214,50 +214,16 @@ class TestLibTesseractRaw(BaseTest):
             self.assertEqual(args[2], b"F")
             self.assertFalse(setlocale.called)
 
-            setlocale.assert_called_once_with(locale.LC_ALL, "C")
-
             libtess.reset_mock()
             setlocale.reset_mock()
-
-    @patch("locale.setlocale")
-    @patch("pyocr.libtesseract.tesseract_raw.g_libtesseract")
-    def test_init_tesseract3(self, libtess, setlocale):
-        libtess.TessVersion.return_value = b"3.5.0"
-        libtess.TessBaseAPICreate.return_value = self.handle
-        for lang in (None, "eng", "fra", "jpn", "osd"):
-            api = tesseract_raw.init(lang)
-            self.assertEqual(api, self.handle)
-
-            libtess.TessBaseAPICreate.assert_called_once_with()
-
-            self.assertEqual(
-                libtess.TessBaseAPIInit3.call_count,
-                1
-            )
-            args = libtess.TessBaseAPIInit3.call_args[0]
-            self.assertEqual(len(args), 3)
-            self.assertEqual(args[0].value, self.handle)
-            self.assertEqual(args[1].value, None)
-            self.assertEqual(args[2].value, lang.encode() if lang else None)
-
-            self.assertEqual(
-                libtess.TessBaseAPISetVariable.call_count,
-                1
-            )
-            args = libtess.TessBaseAPISetVariable.call_args[0]
-            self.assertEqual(len(args), 3)
-            self.assertEqual(args[0].value, self.handle)
-            self.assertEqual(args[1], b"tessedit_zero_rejection")
-            self.assertEqual(args[2], b"F")
-            setlocale.assert_not_called()
-
-            libtess.reset_mock()
 
     @patch("pyocr.libtesseract.tesseract_raw.g_libtesseract")
     def test_init_error(self, libtess):
         libtess.TessBaseAPICreate.return_value = self.handle
-        libtess.TessBaseAPIInit3.side_effect = Exception("Could not initialize")
-        with self.assertRaises(Exception) as e:
+        libtess.TessBaseAPIInit3.side_effect = Exception(
+            "Could not initialize"
+        )
+        with self.assertRaises(Exception):
             tesseract_raw.init()
         self.assertEqual(
             libtess.TessBaseAPICreate.call_count,
@@ -453,7 +419,8 @@ class TestLibTesseractRaw(BaseTest):
 
     @patch("pyocr.libtesseract.tesseract_raw.g_libtesseract")
     def test_page_iterator_block_type(self, libtess):
-        libtess.TessPageIteratorBlockType.return_value = tesseract_raw.PolyBlockType.FLOWING_TEXT
+        flowing = tesseract_raw.PolyBlockType.FLOWING_TEXT
+        libtess.TessPageIteratorBlockType.return_value = flowing
         self.assertEqual(tesseract_raw.page_iterator_block_type(self.iterator),
                          tesseract_raw.PolyBlockType.FLOWING_TEXT)
         self.assertEqual(
@@ -516,7 +483,8 @@ class TestLibTesseractRaw(BaseTest):
     @patch("pyocr.libtesseract.tesseract_raw.g_libtesseract")
     def test_get_iterator(self, libtess):
         libtess.TessBaseAPIGetIterator.return_value = self.iterator
-        self.assertEqual(tesseract_raw.get_iterator(self.handle), self.iterator)
+        self.assertEqual(tesseract_raw.get_iterator(self.handle),
+                         self.iterator)
         self.assertEqual(
             libtess.TessBaseAPIGetIterator.call_count,
             1
@@ -792,7 +760,8 @@ class TestLibTesseractText(BaseTest):
         raw.result_iterator_get_utf8_text.side_effect = ("word1", "word2",
                                                          "word3")
         raw.page_iterator_is_at_beginning_of.side_effect = (True, False, False)
-        raw.page_iterator_is_at_final_element.side_effect = (False, False, True)
+        raw.page_iterator_is_at_final_element.side_effect = (False, False,
+                                                             True)
 
         self.assertEqual(
             libtesseract.image_to_string(self.image),
@@ -853,7 +822,8 @@ class TestLibTesseractText(BaseTest):
         raw.result_iterator_get_utf8_text.side_effect = ("word1", "word2",
                                                          "word3")
         raw.page_iterator_is_at_beginning_of.side_effect = (True, False, False)
-        raw.page_iterator_is_at_final_element.side_effect = (False, False, True)
+        raw.page_iterator_is_at_final_element.side_effect = (False, False,
+                                                             True)
 
         self.assertEqual(
             libtesseract.image_to_string(self.image, lang="eng",
@@ -993,7 +963,8 @@ class TestLibTesseractText(BaseTest):
         raw.result_iterator_get_utf8_text.side_effect = ("word1", "word2",
                                                          "word3")
         raw.page_iterator_is_at_beginning_of.side_effect = (True, False, False)
-        raw.page_iterator_is_at_final_element.side_effect = (False, False, True)
+        raw.page_iterator_is_at_final_element.side_effect = (False, False,
+                                                             True)
 
         with self.assertRaises(TesseractError) as te:
             libtesseract.image_to_string(self.image, builder=self.builder)
@@ -1031,7 +1002,8 @@ class TestLibTesseractDigits(BaseTest):
         raw.page_iterator_bounding_box.return_value = (True, (0, 0, 0, 0))
         raw.result_iterator_get_utf8_text.side_effect = ("1", "2", "42")
         raw.page_iterator_is_at_beginning_of.side_effect = (True, False, False)
-        raw.page_iterator_is_at_final_element.side_effect = (False, False, True)
+        raw.page_iterator_is_at_final_element.side_effect = (False, False,
+                                                             True)
 
         self.assertEqual(
             libtesseract.image_to_string(self.image, builder=self.builder),
@@ -1103,7 +1075,8 @@ class TestLibTesseractWordBox(BaseTest):
         raw.result_iterator_get_utf8_text.side_effect = ("word1", "word2",
                                                          "word3")
         raw.page_iterator_is_at_beginning_of.side_effect = (True, False, False)
-        raw.page_iterator_is_at_final_element.side_effect = (False, False, True)
+        raw.page_iterator_is_at_final_element.side_effect = (False, False,
+                                                             True)
 
         self.assertListEqual(
             libtesseract.image_to_string(self.image, builder=self.builder),
@@ -1168,7 +1141,8 @@ class TestLibTesseractWordBox(BaseTest):
         raw.result_iterator_get_utf8_text.side_effect = ("word1", "word2",
                                                          "word3")
         raw.page_iterator_is_at_beginning_of.side_effect = (True, False, False)
-        raw.page_iterator_is_at_final_element.side_effect = (False, False, True)
+        raw.page_iterator_is_at_final_element.side_effect = (False, False,
+                                                             True)
 
         with self.assertRaises(TesseractError) as te:
             libtesseract.image_to_string(self.image, builder=self.builder)
@@ -1207,7 +1181,8 @@ class TestLibTesseractLineBox(BaseTest):
         raw.result_iterator_get_utf8_text.side_effect = ("word1", "word2",
                                                          "word3")
         raw.page_iterator_is_at_beginning_of.side_effect = (True, False, False)
-        raw.page_iterator_is_at_final_element.side_effect = (False, False, True)
+        raw.page_iterator_is_at_final_element.side_effect = (False, False,
+                                                             True)
 
         self.assertListEqual(
             libtesseract.image_to_string(self.image, builder=self.builder),
@@ -1274,7 +1249,8 @@ class TestLibTesseractLineBox(BaseTest):
         raw.result_iterator_get_utf8_text.side_effect = ("word1", "word2",
                                                          "word3")
         raw.page_iterator_is_at_beginning_of.side_effect = (True, False, False)
-        raw.page_iterator_is_at_final_element.side_effect = (False, False, True)
+        raw.page_iterator_is_at_final_element.side_effect = (False, False,
+                                                             True)
 
         with self.assertRaises(TesseractError) as te:
             libtesseract.image_to_string(self.image, builder=self.builder)
@@ -1312,7 +1288,8 @@ class TestLibTesseractDigitsLineBox(BaseTest):
         raw.page_iterator_bounding_box.return_value = (True, (0, 0, 0, 0))
         raw.result_iterator_get_utf8_text.side_effect = ("1", "2", "42")
         raw.page_iterator_is_at_beginning_of.side_effect = (True, False, False)
-        raw.page_iterator_is_at_final_element.side_effect = (False, False, True)
+        raw.page_iterator_is_at_final_element.side_effect = (False, False,
+                                                             True)
 
         self.assertListEqual(
             libtesseract.image_to_string(self.image, builder=self.builder),
@@ -1378,7 +1355,8 @@ class TestLibTesseractDigitsLineBox(BaseTest):
         raw.page_iterator_bounding_box.return_value = (True, (0, 0, 0, 0))
         raw.result_iterator_get_utf8_text.side_effect = ("1", "2", "42")
         raw.page_iterator_is_at_beginning_of.side_effect = (True, False, False)
-        raw.page_iterator_is_at_final_element.side_effect = (False, False, True)
+        raw.page_iterator_is_at_final_element.side_effect = (False, False,
+                                                             True)
 
         with self.assertRaises(TesseractError) as te:
             libtesseract.image_to_string(self.image, builder=self.builder)
@@ -1434,7 +1412,7 @@ class TestLibTesseractPDF(BaseTest):
         raw.init.return_value = self.handle
         raw.init_pdf_renderer.return_value = renderer
 
-        with self.assertRaises(AssertionError) as ae:
+        with self.assertRaises(AssertionError):
             libtesseract.image_to_pdf(self.image, "output")
 
         raw.init.assert_called_once_with(lang=None)
