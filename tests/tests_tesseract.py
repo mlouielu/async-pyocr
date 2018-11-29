@@ -1,3 +1,4 @@
+import errno
 import os
 import subprocess
 
@@ -10,6 +11,13 @@ try:
     from tempfile import TemporaryDirectory
 except ImportError:
     from backports.tempfile import TemporaryDirectory
+
+try:
+    FileNotFoundError
+except NameError:
+    # python3 does not have FileNotFoundError and PermissionError
+    FileNotFoundError = IOError
+    PermissionError = IOError
 
 from PIL import Image
 
@@ -598,8 +606,6 @@ class TestTesseractTxt(BaseTest):
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
-            with open(os.path.join(tmpdir, "output.txt"), "w") as fh:
-                fh.write("")
             result = tesseract.image_to_string(self.image)
 
         self.assertEqual(result, self._get_file_content("text").strip())
@@ -619,8 +625,6 @@ class TestTesseractTxt(BaseTest):
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
-            with open(os.path.join(tmpdir, "output.txt"), "w") as fh:
-                fh.write("")
             result = tesseract.image_to_string(self.image, lang="fra",
                                                builder=self.builder)
 
@@ -641,8 +645,6 @@ class TestTesseractTxt(BaseTest):
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
-            with open(os.path.join(tmpdir, "output.txt"), "w") as fh:
-                fh.write("")
             result = tesseract.image_to_string(self.image,
                                                builder=self.builder)
 
@@ -666,8 +668,6 @@ class TestTesseractTxt(BaseTest):
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
-            with open(os.path.join(tmpdir, "output.txt"), "w") as fh:
-                fh.write("")
             result = tesseract.image_to_string(image, builder=self.builder)
 
         self.assertEqual(result, self._get_file_content("text").strip())
@@ -700,20 +700,33 @@ class TestTesseractTxt(BaseTest):
     @patch("pyocr.tesseract.temp_dir")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
-    def test_text_cannot_open_file(self, run_tesseract, copen, temp_dir):
+    def test_text_error_file(self, run_tesseract, copen, temp_dir):
         run_tesseract.return_value = (0, "")
-        copen.side_effect = OSError("Error opening file")
+        copen.side_effect = Exception("Unknown error")
         with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
-            with open(os.path.join(tmpdir, "output.txt"), "w") as fh:
-                fh.write("")
-            with self.assertRaises(tesseract.TesseractError) as te:
+            with self.assertRaises(Exception):
                 tesseract.image_to_string(self.image, builder=self.builder)
-        self.assertEqual(te.exception.status, -1)
-        self.assertIn("Unable to find output file last name tried",
-                      te.exception.message)
+        run_tesseract.assert_called_once_with(
+            "input.bmp", "output", cwd=tmpdir, lang=None,
+            flags=self.builder.tesseract_flags,
+            configs=self.builder.tesseract_configs,
+        )
+
+    @patch("pyocr.tesseract.temp_dir")
+    @patch("codecs.open")
+    @patch("pyocr.tesseract.run_tesseract")
+    def test_text_cannot_open_file(self, run_tesseract, copen, temp_dir):
+        run_tesseract.return_value = (0, "")
+        copen.side_effect = PermissionError(errno.EPERM, "Error opening file")
+        with TemporaryDirectory(prefix="tess_") as tmpdir:
+            enter = MagicMock()
+            enter.__enter__.return_value = tmpdir
+            temp_dir.return_value = enter
+            with self.assertRaises(PermissionError):
+                tesseract.image_to_string(self.image, builder=self.builder)
         run_tesseract.assert_called_once_with(
             "input.bmp", "output", cwd=tmpdir, lang=None,
             flags=self.builder.tesseract_flags,
@@ -725,7 +738,10 @@ class TestTesseractTxt(BaseTest):
     @patch("pyocr.tesseract.run_tesseract")
     def test_text_no_output(self, run_tesseract, copen, temp_dir):
         run_tesseract.return_value = (0, "No file output")
-        copen.return_value = StringIO(self._get_file_content("text"))
+        copen.side_effect = FileNotFoundError(
+            errno.ENOENT,
+            "[Errno 2] No such file or directory: 'output'"
+        )
         with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
@@ -733,7 +749,7 @@ class TestTesseractTxt(BaseTest):
             with self.assertRaises(tesseract.TesseractError) as te:
                 tesseract.image_to_string(self.image, builder=self.builder)
         self.assertEqual(te.exception.status, -1)
-        self.assertIn("Unable to find output file last name tried",
+        self.assertIn("Unable to find output file (tested",
                       te.exception.message)
         run_tesseract.assert_called_once_with(
             "input.bmp", "output", cwd=tmpdir, lang=None,
@@ -762,8 +778,6 @@ class TestTesseractCharBox(BaseTest):
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
             temp_dir.return_value = enter
-            with open(os.path.join(tmpdir, "output.box"), "w") as fh:
-                fh.write("")
             result = tesseract.image_to_string(self.image,
                                                builder=self.builder)
 
@@ -800,7 +814,10 @@ class TestTesseractCharBox(BaseTest):
     @patch("pyocr.tesseract.run_tesseract")
     def test_char_no_output(self, run_tesseract, copen, temp_dir):
         run_tesseract.return_value = (0, "No file output")
-        copen.return_value = StringIO(self._get_file_content("boxes"))
+        copen.side_effect = FileNotFoundError(
+            errno.ENOENT,
+            "[Errno 2] No such file or directory: 'output'"
+        )
         with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
@@ -808,7 +825,7 @@ class TestTesseractCharBox(BaseTest):
             with self.assertRaises(tesseract.TesseractError) as te:
                 tesseract.image_to_string(self.image, builder=self.builder)
         self.assertEqual(te.exception.status, -1)
-        self.assertIn("Unable to find output file last name tried",
+        self.assertIn("Unable to find output file (tested",
                       te.exception.message)
         run_tesseract.assert_called_once_with(
             "input.bmp", "output", cwd=tmpdir, lang=None,
@@ -967,7 +984,10 @@ class TestTesseractWordBox(BaseTest):
     @patch("pyocr.tesseract.run_tesseract")
     def test_word_no_output(self, run_tesseract, copen, temp_dir):
         run_tesseract.return_value = (0, "No file output")
-        copen.return_value = StringIO(self._get_file_content("words"))
+        copen.side_effect = FileNotFoundError(
+            errno.ENOENT,
+            "[Errno 2] No such file or directory: 'output'"
+        )
         with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
@@ -976,7 +996,7 @@ class TestTesseractWordBox(BaseTest):
                 tesseract.image_to_string(self.image, builder=self.builder)
 
         self.assertEqual(te.exception.status, -1)
-        self.assertIn("Unable to find output file last name tried",
+        self.assertIn("Unable to find output file (tested",
                       te.exception.message)
         run_tesseract.assert_called_once_with(
             "input.bmp", "output", cwd=tmpdir, lang=None,
@@ -998,7 +1018,9 @@ class TestTesseractLineBox(BaseTest):
     @patch("pyocr.tesseract.run_tesseract")
     def test_line(self, run_tesseract, copen, temp_dir):
         run_tesseract.return_value = (0, "")
-        copen.return_value = StringIO(self._get_file_content("tesseract.lines"))
+        copen.return_value = StringIO(
+            self._get_file_content("tesseract.lines")
+        )
         with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
@@ -1021,7 +1043,9 @@ class TestTesseractLineBox(BaseTest):
     @patch("pyocr.tesseract.run_tesseract")
     def test_line_error(self, run_tesseract, copen, temp_dir):
         run_tesseract.return_value = (1, "Error")
-        copen.return_value = StringIO(self._get_file_content("tesseract.lines"))
+        copen.return_value = StringIO(
+            self._get_file_content("tesseract.lines")
+        )
         with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
@@ -1042,7 +1066,10 @@ class TestTesseractLineBox(BaseTest):
     @patch("pyocr.tesseract.run_tesseract")
     def test_line_no_output(self, run_tesseract, copen, temp_dir):
         run_tesseract.return_value = (0, "No file output")
-        copen.return_value = StringIO(self._get_file_content("tesseract.lines"))
+        copen.side_effect = FileNotFoundError(
+            errno.ENOENT,
+            "[Errno 2] No such file or directory: 'output'"
+        )
         with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
@@ -1051,7 +1078,7 @@ class TestTesseractLineBox(BaseTest):
                 tesseract.image_to_string(self.image, builder=self.builder)
 
         self.assertEqual(te.exception.status, -1)
-        self.assertIn("Unable to find output file last name tried",
+        self.assertIn("Unable to find output file (tested",
                       te.exception.message)
         run_tesseract.assert_called_once_with(
             "input.bmp", "output", cwd=tmpdir, lang=None,
@@ -1117,7 +1144,10 @@ class TestTesseractDigitsLineBox(BaseTest):
     @patch("pyocr.tesseract.run_tesseract")
     def test_line_no_output(self, run_tesseract, copen, temp_dir):
         run_tesseract.return_value = (0, "No file output")
-        copen.return_value = StringIO(self._get_file_content("digits.lines"))
+        copen.side_effect = FileNotFoundError(
+            errno.ENOENT,
+            "[Errno 2] No such file or directory: 'output'"
+        )
         with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
             enter.__enter__.return_value = tmpdir
@@ -1126,7 +1156,7 @@ class TestTesseractDigitsLineBox(BaseTest):
                 tesseract.image_to_string(self.image, builder=self.builder)
 
         self.assertEqual(te.exception.status, -1)
-        self.assertIn("Unable to find output file last name tried",
+        self.assertIn("Unable to find output file (tested",
                       te.exception.message)
         run_tesseract.assert_called_once_with(
             "input.bmp", "output", cwd=tmpdir, lang=None,

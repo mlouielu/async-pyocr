@@ -17,6 +17,7 @@ https://github.com/openpaperwork/pyocr#readme
 '''
 
 import codecs
+import errno
 import logging
 import os
 import subprocess
@@ -33,6 +34,12 @@ from .util import (
     digits_only,
     to_unicode,
 )
+
+try:
+    FileNotFoundError
+except NameError:
+    # python2 does not have FileNotFoundError
+    FileNotFoundError = IOError
 
 # CHANGE THIS IF TESSERACT IS NOT IN YOUR PATH, OR IS NAMED DIFFERENTLY
 TESSERACT_CMD = 'tesseract.exe' if os.name == 'nt' else 'tesseract'
@@ -375,25 +382,32 @@ def image_to_string(image, lang=None, builder=None):
         if status:
             raise TesseractError(status, errors)
 
+        tested_files = []
         output_file_name = "ERROR"
         for file_extension in builder.file_extensions:
             output_file_name = ('%s.%s' % (os.path.join(tmpdir, "output"),
                                            file_extension))
-            if not os.access(output_file_name, os.F_OK):
-                continue
 
+            tested_files.append(output_file_name)
             try:
                 with codecs.open(output_file_name, 'r', encoding='utf-8',
                                  errors='replace') as file_desc:
-                    results = builder.read_file(file_desc)
-                return results
-            except OSError:
-                pass
+                    return builder.read_file(file_desc)
+            except FileNotFoundError as exc:
+                if sys.version_info < (3, 0):
+                    # python2 has no FileNotFoundError specifid Exception
+                    # so we rely on the errno of the IOError exception
+                    if exc.errno == errno.ENOENT:
+                        # file not found
+                        continue
+                    else:
+                        raise exc
+                continue
             finally:
                 cleanup(output_file_name)
-            break
-        raise TesseractError(-1, "Unable to find output file"
-                             " last name tried: %s" % output_file_name)
+        raise TesseractError(
+            -1, "Unable to find output file (tested {})".format(tested_files)
+        )
 
 
 def is_available():
