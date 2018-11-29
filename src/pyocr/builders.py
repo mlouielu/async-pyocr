@@ -514,7 +514,7 @@ class _LineHTMLParser(HTMLParser):
             # strip x_bboxes
             self.__char_positions = self.__char_positions[1:]
             if self.__char_positions[-1] == "":
-                self.__char_positions[:-1]
+                self.__char_positions = self.__char_positions[:-1]
             try:
                 while True:
                     self.__char_positions.remove("-1")
