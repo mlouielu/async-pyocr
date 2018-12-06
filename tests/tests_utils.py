@@ -71,7 +71,10 @@ class TestPyOCR(unittest.TestCase):
         self.assertEqual(digits_only("azer"), 0)
         self.assertEqual(digits_only("10.0.1"), 10)
         self.assertEqual(digits_only("42azer"), 42)
-        self.assertEqual(digits_only("qsdf42azer"), 0)
+        self.assertEqual(digits_only("qsdf42azer"), 42)
+        self.assertEqual(digits_only("v42"), 42)
+        self.assertEqual(digits_only("v42x35"), 42)
+        self.assertEqual(digits_only("v42x35qsdf"), 42)
 
     def test_is_on_path(self):
         self.assertTrue(any((is_on_path("python"), is_on_path("python2"),
