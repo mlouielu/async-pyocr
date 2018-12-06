@@ -14,6 +14,8 @@ except ImportError:
 import xml.dom.minidom
 import logging
 
+import six
+
 from .util import to_unicode
 
 logger = logging.getLogger(__name__)
@@ -38,6 +40,7 @@ _XHTML_HEADER = to_unicode("""<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
 """)
 
 
+@six.python_2_unicode_compatible
 class Box(object):
     """
     Boxes are rectangles around each individual element recognized in the
@@ -53,7 +56,6 @@ class Box(object):
                 tuple of tuple:
                 ((box_pt_min_x, box_pt_min_y), (box_pt_max_x, box_pt_max_y))
         """
-        content = to_unicode(content)
         self.content = content
         self.position = position
         self.confidence = confidence
@@ -85,13 +87,13 @@ class Box(object):
         return span_tag
 
     def __str__(self):
-        return self.get_unicode_string().encode('utf-8')
+        return self.get_unicode_string()
 
     def __box_cmp(self, other):
         """
         Comparison function.
         """
-        if other is None:
+        if other is None or getattr(other, "position", None) is None:
             return -1
         for (x, y) in ((self.position[0][1], other.position[0][1]),
                        (self.position[1][1], other.position[1][1]),
@@ -130,6 +132,7 @@ class Box(object):
         return (position_hash ^ hash(self.content) ^ hash(self.content))
 
 
+@six.python_2_unicode_compatible
 class LineBox(object):
     """
     Boxes are rectangles around each individual element recognized in the
@@ -146,6 +149,14 @@ class LineBox(object):
         """
         self.word_boxes = word_boxes
         self.position = position
+
+    @property
+    def content(self):
+        txt = u""
+        for box in self.word_boxes:
+            txt += box.content + u" "
+        txt = txt.strip()
+        return txt
 
     def get_unicode_string(self):
         """
@@ -164,37 +175,29 @@ class LineBox(object):
             self.position[1][1],
         )
 
-    def __get_content(self):
-        txt = to_unicode("")
-        for box in self.word_boxes:
-            txt += box.content + to_unicode(" ")
-        txt = txt.strip()
-        return txt
-
-    content = property(__get_content)
-
     def get_xml_tag(self, parent_doc):
         span_tag = parent_doc.createElement("span")
         span_tag.setAttribute("class", "ocr_line")
         span_tag.setAttribute("title", ("bbox %d %d %d %d" % (
             (self.position[0][0], self.position[0][1],
              self.position[1][0], self.position[1][1]))))
-        for box in self.word_boxes:
-            space = xml.dom.minidom.Text()
-            space.data = " "
-            span_tag.appendChild(space)
+        for box_idx, box in enumerate(self.word_boxes):
+            if box_idx:
+                space = xml.dom.minidom.Text()
+                space.data = " "
+                span_tag.appendChild(space)
             box_xml = box.get_xml_tag(parent_doc)
             span_tag.appendChild(box_xml)
         return span_tag
 
     def __str__(self):
-        return self.get_unicode_string().encode('utf-8')
+        return self.get_unicode_string()
 
     def __box_cmp(self, other):
         """
         Comparison function.
         """
-        if other is None:
+        if other is None or getattr(other, "position", None) is None:
             return -1
         for (x, y) in ((self.position[0][1], other.position[0][1]),
                        (self.position[1][1], other.position[1][1]),
@@ -231,7 +234,7 @@ class LineBox(object):
         position_hash += ((self.position[0][1] & 0xFF) << 8)
         position_hash += ((self.position[1][0] & 0xFF) << 16)
         position_hash += ((self.position[1][1] & 0xFF) << 24)
-        return (position_hash ^ hash(content) ^ hash(content))
+        return (position_hash ^ hash(content))
 
 
 class BaseBuilder(object):
@@ -253,39 +256,39 @@ class BaseBuilder(object):
         self.cuneiform_args = cuneiform_args
 
     # used with Tesseract and Cuneiform
-    def read_file(self, file_descriptor):
+    def read_file(self, file_descriptor):  # pragma: no cover
         """
         Read in the OCR results from `file_descriptor`
         as an appropriate format.
         """
         raise NotImplementedError("Implement in subclasses")
 
-    def write_file(self, file_descriptor, output):
+    def write_file(self, file_descriptor, output):  # pragma: no cover
         """
         Write the `output` to `file_descriptor`.
         """
         raise NotImplementedError("Implement in subclasses")
 
     # used with Libtesseract
-    def start_line(self, box):
+    def start_line(self, box):  # pragma: no cover
         """
         Start a new line of output.
         """
         raise NotImplementedError("Implement in subclasses")
 
-    def add_word(self, word, box, confidence=0):
+    def add_word(self, word, box, confidence=0):  # pragma: no cover
         """
         Add a word to output.
         """
         raise NotImplementedError("Implement in subclasses")
 
-    def end_line(self):
+    def end_line(self):  # pragma: no cover
         """
         End a line in output.
         """
         raise NotImplementedError("Implement in subclasses")
 
-    def get_output(self):
+    def get_output(self):  # pragma: no cover
         """
         Return the output that has been built so far.
         """
@@ -346,8 +349,7 @@ class TextBuilder(BaseBuilder):
     def get_output(self):
         return u"\n".join(self.built_text)
 
-    @staticmethod
-    def __str__():
+    def __str__(self):
         return "Raw text"
 
 
@@ -365,9 +367,8 @@ class DigitBuilder(TextBuilder):
         The returned string is encoded in UTF-8.
     """
 
-    @staticmethod
-    def __str__():
-        return "Digits raw text."
+    def __str__(self):
+        return "Digits raw text"
 
     def __init__(self, tesseract_layout=3):
         super(DigitBuilder, self).__init__(tesseract_layout)
@@ -472,8 +473,7 @@ class _WordHTMLParser(HTMLParser):
             self.__current_line_content = []
             return
 
-    @staticmethod
-    def __str__():
+    def __str__(self):  # pragma: no cover
         return "WordHTMLParser"
 
 
@@ -514,7 +514,7 @@ class _LineHTMLParser(HTMLParser):
             # strip x_bboxes
             self.__char_positions = self.__char_positions[1:]
             if self.__char_positions[-1] == "":
-                self.__char_positions[:-1]
+                self.__char_positions = self.__char_positions[:-1]
             try:
                 while True:
                     self.__char_positions.remove("-1")
@@ -550,8 +550,7 @@ class _LineHTMLParser(HTMLParser):
             self.boxes.append(box)
         self.__line_text = None
 
-    @staticmethod
-    def __str__():
+    def __str__(self):  # pragma: no cover
         return "LineHTMLParser"
 
 
@@ -627,8 +626,7 @@ class WordBoxBuilder(BaseBuilder):
     def get_output(self):
         return self.word_boxes
 
-    @staticmethod
-    def __str__():
+    def __str__(self):
         return "Word boxes"
 
 
@@ -712,8 +710,7 @@ class LineBoxBuilder(BaseBuilder):
     def get_output(self):
         return self.lines
 
-    @staticmethod
-    def __str__():
+    def __str__(self):
         return "Line boxes"
 
 
@@ -726,8 +723,7 @@ class DigitLineBoxBuilder(LineBoxBuilder):
     unable to process the input this way.
     """
 
-    @staticmethod
-    def __str__():
+    def __str__(self):
         return "Digit line boxes"
 
     def __init__(self, tesseract_layout=1):

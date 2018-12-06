@@ -17,6 +17,7 @@ https://github.com/openpaperwork/pyocr#readme
 '''
 
 import codecs
+import errno
 import logging
 import os
 import subprocess
@@ -30,6 +31,12 @@ from . import util
 from .builders import DigitBuilder  # backward compatibility
 from .error import TesseractError  # backward compatibility
 from .util import digits_only
+
+try:
+    FileNotFoundError
+except NameError:
+    # python2 does not have FileNotFoundError
+    FileNotFoundError = IOError
 
 # CHANGE THIS IF TESSERACT IS NOT IN YOUR PATH, OR IS NAMED DIFFERENTLY
 TESSERACT_CMD = 'tesseract.exe' if os.name == 'nt' else 'tesseract'
@@ -105,8 +112,7 @@ class CharBoxBuilder(builders.BaseBuilder):
         for box in boxes:
             file_descriptor.write(box.get_unicode_string() + " 0\n")
 
-    @staticmethod
-    def __str__():
+    def __str__(self):
         return "Character boxes"
 
 
@@ -114,13 +120,13 @@ def _set_environment():
     global g_subprocess_startup_info
     global g_creation_flags
 
-    if os.name == "nt":
+    if os.name == "nt":  # pragma: no cover
         g_subprocess_startup_info = subprocess.STARTUPINFO()
         g_subprocess_startup_info.wShowWindow = subprocess.SW_HIDE
         g_subprocess_startup_info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
         g_creation_flags = 0x08000000  # CREATE_NO_WINDOW
 
-    if getattr(sys, 'frozen', False):
+    if getattr(sys, 'frozen', False):  # pragma: no cover
         # Pyinstaller support
         path = os.environ["PATH"]
         if sys._MEIPASS in path:
@@ -241,6 +247,7 @@ def get_available_builders():
         builders.WordBoxBuilder,
         CharBoxBuilder,
         builders.DigitBuilder,
+        builders.DigitLineBoxBuilder,
     ]
 
 
@@ -298,11 +305,11 @@ def cleanup(filename):
     ''' Tries to remove the given filename. Ignores non-existent files '''
     try:
         os.remove(filename)
-    except OSError:
+    except OSError:  # pragma: no cover
         pass
 
 
-class ReOpenableTempfile(object):
+class ReOpenableTempfile(object):  # pragma: no cover
     """
     On Windows, `tempfile.NamedTemporaryFile` occur Permission denied Error
     when file is still open.
@@ -372,23 +379,32 @@ def image_to_string(image, lang=None, builder=None):
         if status:
             raise TesseractError(status, errors)
 
+        tested_files = []
         output_file_name = "ERROR"
         for file_extension in builder.file_extensions:
             output_file_name = ('%s.%s' % (os.path.join(tmpdir, "output"),
                                            file_extension))
-            if not os.access(output_file_name, os.F_OK):
-                continue
 
+            tested_files.append(output_file_name)
             try:
                 with codecs.open(output_file_name, 'r', encoding='utf-8',
                                  errors='replace') as file_desc:
-                    results = builder.read_file(file_desc)
-                return results
+                    return builder.read_file(file_desc)
+            except FileNotFoundError as exc:
+                if sys.version_info < (3, 0):
+                    # python2 has no FileNotFoundError specifid Exception
+                    # so we rely on the errno of the IOError exception
+                    if exc.errno == errno.ENOENT:
+                        # file not found
+                        continue
+                    else:
+                        raise exc
+                continue
             finally:
                 cleanup(output_file_name)
-            break
-        raise TesseractError(-1, "Unable to find output file"
-                             " last name tried: %s" % output_file_name)
+        raise TesseractError(
+            -1, "Unable to find output file (tested {})".format(tested_files)
+        )
 
 
 def is_available():
@@ -446,9 +462,6 @@ def get_version():
 
     try:
         ver_string = ver_string.split(" ")[1]
-        index = ver_string.find("dev")
-        if index:
-            ver_string = ver_string[:index]
 
         els = ver_string.split(".")
         els = [digits_only(x) for x in els]
@@ -457,12 +470,13 @@ def get_version():
         upd = 0
         if len(els) >= 3:
             upd = els[2]
-        return (major, minor, upd)
+        version = (major, minor, upd)
+        if version == (0, 0, 0):
+            raise TesseractError(
+                ret, ("Unable to parse Tesseract version (not a number): [%s]"
+                      % (ver_string)))
+        return version
     except IndexError:
         raise TesseractError(
             ret, ("Unable to parse Tesseract version (spliting failed): [%s]"
-                  % (ver_string)))
-    except ValueError:
-        raise TesseractError(
-            ret, ("Unable to parse Tesseract version (not a number): [%s]"
                   % (ver_string)))

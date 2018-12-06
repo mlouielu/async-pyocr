@@ -281,16 +281,10 @@ Beware this code hasn't been adapted to libtesseract 3 yet.
 
 ```sh
 make check  # requires pyflake8
-make test  # requires tox
+make test  # requires tox, pytest and python3
 ```
 
-Tests are made to be run with the latest versions of Tesseract and Cuneiform.
-the first tests verify that you're using the expected version.
-
-To run the tesseract tests, you will need the following lang data files:
-- English (tesseract-ocr-eng)
-- French (tesseract-ocr-fra)
-- Japanese (tesseract-ocr-jpn)
+Tests are made to be run without external dependencies (no Tesseract or Cuneiform needed).
 
 
 ## OCR on natural scenes

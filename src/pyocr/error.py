@@ -11,3 +11,11 @@ class TesseractError(PyocrException):
         self.status = status
         self.message = message
         self.args = (status, message)
+
+
+class CuneiformError(PyocrException):
+    def __init__(self, status, message):
+        PyocrException.__init__(self, message)
+        self.status = status
+        self.message = message
+        self.args = (status, message)
