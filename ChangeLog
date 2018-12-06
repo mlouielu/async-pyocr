@@ -1,3 +1,8 @@
+xx/xx/201x - 0.5.4:
+- Complete rewrite of unit tests (thanks to Thomas Perret)
+- libtesseract 4.0: Fix segfault when running orientation detection
+  (thanks to Marián Skrip)
+
 09/04/2018 - 0.5.3:
 - Really fix tesseract 4.0 support (thanks to David Martin)
 - Tests: switch from nose to pytest (thanks to Elliott Sales de Andrade)
