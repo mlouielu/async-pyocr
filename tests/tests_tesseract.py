@@ -98,6 +98,14 @@ class TestTesseract(BaseTest):
         self.assertSequenceEqual(tesseract.get_version(), (3, 0, 0))
 
     @patch("subprocess.Popen")
+    def test_version_windows(self, popen):
+        message = self.message.replace("tesseract 4.0.0",
+                                       "tesseract v4.0.0.20181030")
+        self.stdout.stdout.read.return_value = message.encode()
+        popen.return_value = self.stdout
+        self.assertSequenceEqual(tesseract.get_version(), (4, 0, 0))
+
+    @patch("subprocess.Popen")
     def test_version_error_splitting(self, popen):
         message = self.message.replace("tesseract 4.0.0",
                                        "tesseract 3")
