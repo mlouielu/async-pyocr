@@ -46,7 +46,8 @@ else
 	git push origin ${RELEASE}
 	make clean
 	make version
-	${PYTHON} ./setup.py sdist upload
+	${PYTHON} ./setup.py sdist
+	twine upload dist/pyocr-${RELEASE}.tar.gz
 	@echo "All done"
 endif
 
