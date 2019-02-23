@@ -168,6 +168,13 @@ if g_libtesseract:  # pragma: no cover
     ]
     g_libtesseract.TessBaseAPIInit3.restype = ctypes.c_int
 
+    g_libtesseract.TessBaseAPISetSourceResolution.argtypes = [
+        ctypes.c_void_p,  # TessBaseAPI*
+        ctypes.c_int,     # PPI
+    ]
+
+    g_libtesseract.TessBaseAPISetSourceResolution.restype = None
+
     g_libtesseract.TessBaseAPISetVariable.argtypes = [
         ctypes.c_void_p,  # TessBaseAPI*
         ctypes.c_char_p,  # name
@@ -464,7 +471,7 @@ def set_image(handle, image):
     )
 
     dpi = image.info.get("dpi", [DPI_DEFAULT])[0]
-    g_libtesseract.TessBaseAPISetSourceResolution(handle, dpi)
+    g_libtesseract.TessBaseAPISetSourceResolution(ctypes.c_void_p(handle), dpi)
 
 
 def recognize(handle):
