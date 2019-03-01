@@ -45,6 +45,7 @@ WEBSITE:
 https://github.com/openpaperwork/pyocr#readme
 """
 
+from . import _version
 from . import cuneiform
 from . import libtesseract
 from . import tesseract
@@ -62,7 +63,20 @@ TOOLS = [  # in preference order
     cuneiform,
 ]
 
-VERSION = (0, 5, 0)
+try:
+    VERSION = _version.version
+    # drop Git commit
+    VERSION = VERSION.split("-", 1)[0]
+    # split major, minor, update
+    VERSION = VERSION.split(".")
+    # ensure always at least 3 elements
+    VERSION = VERSION + ([0] * (3 - len(VERSION)))
+    # seal it
+    VERSION = tuple(VERSION)
+except Exception as exc:
+    print("WARNING: Failed to parse PyOCR version: " + str(_version.version))
+    print("WARNING: Exception was: " + str(exc))
+    VERSION = (0, 0, 0)
 
 
 def get_available_tools():
