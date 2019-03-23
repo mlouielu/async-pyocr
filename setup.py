@@ -44,8 +44,7 @@ setup(
         'pyocr.libtesseract',
     ],
     package_dir={
-        'pyocr': 'src/pyocr',
-        'pyocr.libtesseract': 'src/pyocr/libtesseract',
+        '': 'src',
     },
     data_files=[],
     scripts=[],
