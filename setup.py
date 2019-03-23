@@ -3,21 +3,8 @@
 import sys
 from setuptools import setup
 
-try:
-    with open("src/pyocr/_version.py", "r") as file_descriptor:
-        version = file_descriptor.read().strip()
-        version = version.split(" ")[2][1:-1]
-    print("PyOCR version: {}".format(version))
-    if "-" in version:
-        version = version.split("-")[0]
-except FileNotFoundError:
-    print("ERROR: _version.py file is missing")
-    print("ERROR: Please run 'make version' first")
-    sys.exit(1)
-
 setup(
     name="pyocr",
-    version=version,
     description=("A Python wrapper for OCR engines (Tesseract, Cuneiform,"
                  " etc)"),
     keywords="tesseract cuneiform ocr",
@@ -44,8 +31,7 @@ setup(
         'pyocr.libtesseract',
     ],
     package_dir={
-        'pyocr': 'src/pyocr',
-        'pyocr.libtesseract': 'src/pyocr/libtesseract',
+        '': 'src',
     },
     data_files=[],
     scripts=[],
@@ -54,4 +40,11 @@ setup(
         "Pillow",
         "six",
     ],
+    setup_requires=[
+        'setuptools_scm',
+        'setuptools_scm_git_archive',
+    ],
+    use_scm_version={
+        'write_to': 'src/pyocr/_version.py',
+    },
 )
