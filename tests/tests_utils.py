@@ -1,10 +1,6 @@
 import unittest
-import sys
 
-try:
-    from unittest.mock import patch
-except ImportError:
-    from mock import patch
+from unittest.mock import patch
 
 import pyocr
 
@@ -83,17 +79,6 @@ class TestPyOCR(unittest.TestCase):
         self.assertFalse(is_on_path("windows95"))
 
     def test_to_unicode(self):
-        self.assertEqual(to_unicode("salut, \u00e7a va ?"),
-                         u"salut, \u00e7a va ?")
-
-    @unittest.skipUnless(sys.version_info >= (3, 0),
-                         "Test for python3 to_unicode")
-    def test_to_unicode_python3(self):
-        self.assertEqual(to_unicode("salut, \u00e7a va ?".encode("utf-8")),
-                         u"salut, \u00e7a va ?".encode("utf-8"))
-
-    @unittest.skipIf(sys.version_info >= (3, 0),
-                     "Test for python2 unicode support")
-    def test_to_unicode_python2(self):
-        self.assertEqual(to_unicode("salut, \u00e7a va ?".encode("utf-8")),
-                         u"salut, \u00e7a va ?")
+        self.assertEqual(to_unicode("salut, ça va ?"), "salut, ça va ?")
+        self.assertEqual(to_unicode("salut, ça va ?".encode()),
+                         "salut, ça va ?".encode())

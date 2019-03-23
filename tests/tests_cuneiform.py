@@ -1,10 +1,7 @@
 import subprocess
 
 from io import StringIO
-try:
-    from unittest.mock import patch, MagicMock
-except ImportError:
-    from mock import patch, MagicMock
+from unittest.mock import patch, MagicMock
 
 from PIL import Image
 

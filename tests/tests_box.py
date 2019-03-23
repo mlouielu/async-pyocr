@@ -1,4 +1,3 @@
-import sys
 import unittest
 import xml.dom.minidom
 
@@ -13,7 +12,7 @@ class TestBox(unittest.TestCase):
         self.box1 = builders.Box("word1", ((15, 22), (23, 42)))
         self.box1_bis = builders.Box("word1_bis", ((15, 22), (23, 42)))
         self.box2 = builders.Box("word2", ((30, 5), (40, 15)), 95)
-        self.box_unicode = builders.Box(u"\xe9", ((1, 2), (3, 4)))
+        self.box_unicode = builders.Box("\xe9", ((1, 2), (3, 4)))
 
     def test_init(self):
         self.assertEqual(self.box1.content, "word1")
@@ -31,20 +30,10 @@ class TestBox(unittest.TestCase):
                          "bbox 15 22 23 42; x_wconf 0")
         self.assertEqual(tag.firstChild.data, "word1")
 
-    def test_get_unicode_string(self):
-        self.assertEqual(self.box_unicode.get_unicode_string(),
-                         u"\xe9 1 2 3 4")
-
     def test_str_method(self):
         self.assertEqual(str(self.box1), "word1 15 22 23 42")
 
-    @unittest.skipUnless(sys.version_info < (3, 0), "python2 box str")
-    def test_str_python2(self):
-        self.assertEqual(str(self.box_unicode),
-                         u"\xe9 1 2 3 4".encode("utf-8"))
-
-    @unittest.skipIf(sys.version_info < (3, 0), "python3 box str")
-    def test_str_python3(self):
+    def test_str_unicode(self):
         self.assertEqual(str(self.box_unicode), "\xe9 1 2 3 4")
 
     def test_box_not_equal_none(self):
@@ -80,7 +69,7 @@ class TestLineBox(unittest.TestCase):
         box2 = builders.Box("word2", ((25, 23), (30, 32)))
         box3 = builders.Box("word3", ((32, 25), (40, 32)), 95)
         box4 = builders.Box("word4", ((41, 18), (44, 33)), 98)
-        box_unicode = builders.Box(u"\xe9", ((1, 2), (3, 4)), 98)
+        box_unicode = builders.Box("\xe9", ((1, 2), (3, 4)), 98)
         self.line1 = builders.LineBox(
             [box1, box2, box3, box4],
             ((14, 15), (45, 33))
@@ -118,10 +107,6 @@ class TestLineBox(unittest.TestCase):
         self.assertEqual(tag.firstChild.firstChild.data, "word1")
         self.assertEqual(tag.lastChild.firstChild.data, "word4")
 
-    def test_get_unicode_string(self):
-        self.assertEqual(self.line_unicode.get_unicode_string(),
-                         u"[\n  word1 15 22 23 30\n  \xe9 1 2 3 4\n] 1 2 3 4")
-
     def test_line_str(self):
         expected = "[\n"
         for box in self.line1.word_boxes:
@@ -129,16 +114,7 @@ class TestLineBox(unittest.TestCase):
         expected += "] 14 15 45 33"
         self.assertEqual(str(self.line1), expected)
 
-    @unittest.skipUnless(sys.version_info < (3, 0), "python2 line str")
-    def test_str_python2(self):
-        self.assertEqual(
-            str(self.line_unicode),
-            (u"[\n  word1 15 22 23 30"
-             u"\n  \xe9 1 2 3 4\n] 1 2 3 4").encode("utf-8")
-        )
-
-    @unittest.skipIf(sys.version_info < (3, 0), "python3 line str")
-    def test_str_python3(self):
+    def test_str_unicode(self):
         self.assertEqual(
             str(self.line_unicode),
             "[\n  word1 15 22 23 30\n  \xe9 1 2 3 4\n] 1 2 3 4"

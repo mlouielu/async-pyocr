@@ -60,20 +60,6 @@ class Box(object):
         self.position = position
         self.confidence = confidence
 
-    def get_unicode_string(self):
-        """
-        Return the string corresponding to the box, in unicode (utf8).
-        This string can be stored in a file as-is (see write_box_file())
-        and reread using read_box_file().
-        """
-        return to_unicode("%s %d %d %d %d") % (
-            self.content,
-            self.position[0][0],
-            self.position[0][1],
-            self.position[1][0],
-            self.position[1][1],
-        )
-
     def get_xml_tag(self, parent_doc):
         span_tag = parent_doc.createElement("span")
         span_tag.setAttribute("class", "ocrx_word")
@@ -87,7 +73,13 @@ class Box(object):
         return span_tag
 
     def __str__(self):
-        return self.get_unicode_string()
+        return "{} {} {} {} {}".format(
+            self.content,
+            self.position[0][0],
+            self.position[0][1],
+            self.position[1][0],
+            self.position[1][1],
+        )
 
     def __box_cmp(self, other):
         """
@@ -158,23 +150,6 @@ class LineBox(object):
         txt = txt.strip()
         return txt
 
-    def get_unicode_string(self):
-        """
-        Return the string corresponding to the box, in unicode (utf8).
-        This string can be stored in a file as-is (see write_box_file())
-        and reread using read_box_file().
-        """
-        txt = to_unicode("[\n")
-        for box in self.word_boxes:
-            txt += to_unicode("  %s\n") % box.get_unicode_string()
-        return to_unicode("%s] %d %d %d %d") % (
-            txt,
-            self.position[0][0],
-            self.position[0][1],
-            self.position[1][0],
-            self.position[1][1],
-        )
-
     def get_xml_tag(self, parent_doc):
         span_tag = parent_doc.createElement("span")
         span_tag.setAttribute("class", "ocr_line")
@@ -191,7 +166,22 @@ class LineBox(object):
         return span_tag
 
     def __str__(self):
-        return self.get_unicode_string()
+        txt = "[\n"
+        for box in self.word_boxes:
+            txt += "  {} {} {} {} {}\n".format(
+                box.content,
+                box.position[0][0],
+                box.position[0][1],
+                box.position[1][0],
+                box.position[1][1],
+            )
+        return "{}] {} {} {} {}".format(
+            txt,
+            self.position[0][0],
+            self.position[0][1],
+            self.position[1][0],
+            self.position[1][1],
+        )
 
     def __box_cmp(self, other):
         """

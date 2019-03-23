@@ -16,7 +16,6 @@ https://gitlab.gnome.org/World/OpenPaperwork/pyocr#readme
 '''
 
 import codecs
-import errno
 import logging
 import os
 import subprocess
@@ -30,12 +29,6 @@ from . import util
 from .builders import DigitBuilder  # backward compatibility
 from .error import TesseractError  # backward compatibility
 from .util import digits_only
-
-try:
-    FileNotFoundError
-except NameError:
-    # python2 does not have FileNotFoundError
-    FileNotFoundError = IOError
 
 # CHANGE THIS IF TESSERACT IS NOT IN YOUR PATH, OR IS NAMED DIFFERENTLY
 TESSERACT_CMD = 'tesseract.exe' if os.name == 'nt' else 'tesseract'
@@ -109,7 +102,7 @@ class CharBoxBuilder(builders.BaseBuilder):
             The file_descriptor must support UTF-8 ! (see module 'codecs')
         """
         for box in boxes:
-            file_descriptor.write(box.get_unicode_string() + " 0\n")
+            file_descriptor.write(str(box) + " 0\n")
 
     def __str__(self):
         return "Character boxes"
@@ -389,15 +382,7 @@ def image_to_string(image, lang=None, builder=None):
                 with codecs.open(output_file_name, 'r', encoding='utf-8',
                                  errors='replace') as file_desc:
                     return builder.read_file(file_desc)
-            except FileNotFoundError as exc:
-                if sys.version_info < (3, 0):
-                    # python2 has no FileNotFoundError specifid Exception
-                    # so we rely on the errno of the IOError exception
-                    if exc.errno == errno.ENOENT:
-                        # file not found
-                        continue
-                    else:
-                        raise exc
+            except FileNotFoundError:
                 continue
             finally:
                 cleanup(output_file_name)
