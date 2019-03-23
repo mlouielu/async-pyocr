@@ -38,7 +38,6 @@ setup(
     zip_safe=True,
     install_requires=[
         "Pillow",
-        "six",
     ],
     setup_requires=[
         'setuptools_scm',

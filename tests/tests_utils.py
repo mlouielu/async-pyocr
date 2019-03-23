@@ -7,7 +7,6 @@ import pyocr
 from pyocr.util import (
     digits_only,
     is_on_path,
-    to_unicode,
 )
 
 
@@ -77,8 +76,3 @@ class TestPyOCR(unittest.TestCase):
                             is_on_path("python3"))))
         # let's hope nobody is crazy enough to name an executable like this
         self.assertFalse(is_on_path("windows95"))
-
-    def test_to_unicode(self):
-        self.assertEqual(to_unicode("salut, ça va ?"), "salut, ça va ?")
-        self.assertEqual(to_unicode("salut, ça va ?".encode()),
-                         "salut, ça va ?".encode())

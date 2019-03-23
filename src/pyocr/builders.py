@@ -14,10 +14,6 @@ except ImportError:
 import xml.dom.minidom
 import logging
 
-import six
-
-from .util import to_unicode
-
 logger = logging.getLogger(__name__)
 
 __all__ = [
@@ -30,17 +26,16 @@ __all__ = [
     'DigitLineBoxBuilder',
 ]
 
-_XHTML_HEADER = to_unicode("""<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+_XHTML_HEADER = """<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
  "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 \t<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 \t<title>OCR output</title>
 </head>
-""")
+"""
 
 
-@six.python_2_unicode_compatible
 class Box(object):
     """
     Boxes are rectangles around each individual element recognized in the
@@ -124,7 +119,6 @@ class Box(object):
         return (position_hash ^ hash(self.content) ^ hash(self.content))
 
 
-@six.python_2_unicode_compatible
 class LineBox(object):
     """
     Boxes are rectangles around each individual element recognized in the
@@ -430,7 +424,7 @@ class _WordHTMLParser(HTMLParser):
                 # invalid position --> old format --> we ignore this tag
                 self.__tag_types.append("ignore")
                 return
-            self.__current_box_text = to_unicode("")
+            self.__current_box_text = ""
         elif tag_type == 'ocr_line':
             self.__current_line_position = self.__parse_position(position)
             self.__current_line_content = []
@@ -439,7 +433,6 @@ class _WordHTMLParser(HTMLParser):
     def handle_data(self, data):
         if self.__current_box_text is None:
             return
-        data = to_unicode("%s") % data
         self.__current_box_text += data
 
     def handle_endtag(self, tag):
@@ -494,7 +487,7 @@ class _LineHTMLParser(HTMLParser):
                     tag_type = self.TAG_TYPE_POSITIONS
 
         if tag_type == self.TAG_TYPE_CONTENT:
-            self.__line_text = to_unicode("")
+            self.__line_text = ""
             self.__char_positions = []
             return
         elif tag_type == self.TAG_TYPE_POSITIONS:
@@ -575,7 +568,7 @@ class WordBoxBuilder(BaseBuilder):
             p.feed(html_str)
             if len(p.boxes) > 0:
                 last_box = p.boxes[-1]
-                if last_box.content == to_unicode(""):
+                if last_box.content == "":
                     # some parser leave an empty box at the end
                     p.boxes.pop(-1)
                 return p.boxes
@@ -596,13 +589,11 @@ class WordBoxBuilder(BaseBuilder):
         newdoc = impl.createDocument(None, "root", None)
 
         file_descriptor.write(_XHTML_HEADER)
-        file_descriptor.write(to_unicode("<body>\n"))
+        file_descriptor.write("<body>\n")
         for box in boxes:
-            xml_str = to_unicode("%s") % box.get_xml_tag(newdoc).toxml()
-            file_descriptor.write(
-                to_unicode("<p>") + xml_str + to_unicode("</p>\n")
-            )
-        file_descriptor.write(to_unicode("</body>\n</html>\n"))
+            xml_str = box.get_xml_tag(newdoc).toxml()
+            file_descriptor.write("<p>" + xml_str + "</p>\n")
+        file_descriptor.write("</body>\n</html>\n")
 
     def start_line(self, box):
         pass
@@ -655,7 +646,7 @@ class LineBoxBuilder(BaseBuilder):
             parser.feed(html_str)
             if len(parser.boxes) > 0:
                 last_box = parser.boxes[-1]
-                if last_box.content == to_unicode(""):
+                if last_box.content == "":
                     # some parser leave an empty box at the end
                     parser.boxes.pop(-1)
                 return convertion(parser)
@@ -676,18 +667,15 @@ class LineBoxBuilder(BaseBuilder):
         newdoc = impl.createDocument(None, "root", None)
 
         file_descriptor.write(_XHTML_HEADER)
-        file_descriptor.write(to_unicode("<body>\n"))
+        file_descriptor.write("<body>\n")
         for box in boxes:
             xml_str = box.get_xml_tag(newdoc).toxml()
-            xml_str = to_unicode(xml_str)
-            file_descriptor.write(
-                to_unicode("<p>") + xml_str + to_unicode("</p>\n")
-            )
-        file_descriptor.write(to_unicode("</body>\n</html>\n"))
+            file_descriptor.write("<p>" + xml_str + "</p>\n")
+        file_descriptor.write("</body>\n</html>\n")
 
     def start_line(self, box):
         # no empty line
-        if len(self.lines) > 0 and self.lines[-1].content == to_unicode(""):
+        if len(self.lines) > 0 and self.lines[-1].content == "":
             return
         self.lines.append(LineBox([], box))
 

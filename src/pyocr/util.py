@@ -1,7 +1,6 @@
 import os
 
 import re
-import six
 
 
 def digits_only(string):
@@ -10,14 +9,6 @@ def digits_only(string):
     if match:
         return int(match.group('digits'))
     return 0
-
-
-def to_unicode(string):
-    try:
-        return six.u(string)
-    except:  # noqa: E722  # pragma: no cover
-        # probably already decoded
-        return string
 
 
 def is_on_path(exec_name):
