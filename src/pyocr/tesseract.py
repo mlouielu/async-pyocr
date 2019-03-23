@@ -18,14 +18,13 @@ https://gitlab.gnome.org/World/OpenPaperwork/pyocr#readme
 import codecs
 import logging
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
 import contextlib
-import shutil
 
 from . import builders
-from . import util
 from .builders import DigitBuilder  # backward compatibility
 from .error import TesseractError  # backward compatibility
 from .util import digits_only
@@ -393,7 +392,7 @@ def image_to_string(image, lang=None, builder=None):
 
 def is_available():
     _set_environment()
-    return util.is_on_path(TESSERACT_CMD)
+    return shutil.which(TESSERACT_CMD) is not None
 
 
 def get_available_languages():

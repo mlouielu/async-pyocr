@@ -32,11 +32,11 @@ class TestTesseract(BaseTest):
         self.stdout.stdout.read.return_value = self.message.encode()
         self.stdout.wait.return_value = 0
 
-    @patch("pyocr.util.is_on_path")
-    def test_available(self, is_on_path):
-        is_on_path.return_value = True
+    @patch("shutil.which")
+    def test_available(self, which):
+        which.return_value = True
         self.assertTrue(tesseract.is_available())
-        is_on_path.assert_called_once_with("tesseract")
+        which.assert_called_once_with("tesseract")
 
     @patch("subprocess.Popen")
     def test_version_error(self, popen):

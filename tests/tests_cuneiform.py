@@ -16,12 +16,12 @@ class TestCuneiform(BaseTest):
     These tests make sure the requirements for the tests are met.
     """
 
-    @patch("pyocr.util.is_on_path")
-    def test_available(self, is_on_path):
+    @patch("shutil.which")
+    def test_available(self, which):
         # XXX is it useful?
-        is_on_path.return_value = True
+        which.return_value = True
         self.assertTrue(cuneiform.is_available())
-        is_on_path.assert_called_once_with("cuneiform")
+        which.assert_called_once_with("cuneiform")
 
     @patch("subprocess.Popen")
     def test_version(self, popen):
