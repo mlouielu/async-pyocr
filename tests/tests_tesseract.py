@@ -192,13 +192,6 @@ class TestTesseract(BaseTest):
             ]
         )
 
-    def test_temp_dir(self):
-        with tesseract.temp_dir() as tmpdir:
-            with open(os.path.join(tmpdir, "example.txt"), "w") as fh:
-                fh.write("test")
-        self.assertFalse(os.path.exists(os.path.join(tmpdir, "example.txt")))
-        self.assertFalse(os.path.exists(os.path.join(tmpdir)))
-
     @patch("pyocr.tesseract.get_version")
     @patch("subprocess.Popen")
     def test_run_tesseract(self, popen, get_version):
@@ -208,7 +201,7 @@ class TestTesseract(BaseTest):
         self.stdout.stdout.read.return_value = message.encode()
         popen.return_value = self.stdout
 
-        with tesseract.temp_dir() as tmpdir:
+        with TemporaryDirectory() as tmpdir:
             self.image.save(os.path.join(tmpdir, "input.bmp"))
             status, error = tesseract.run_tesseract(
                 "input.bmp",
@@ -228,7 +221,7 @@ class TestTesseract(BaseTest):
 
         get_version.return_value = (4, 0, 0)
         builder = builders.TextBuilder()
-        with tesseract.temp_dir() as tmpdir:
+        with TemporaryDirectory() as tmpdir:
             self.image.save(os.path.join(tmpdir, "input2.bmp"))
             status, error = tesseract.run_tesseract(
                 "input2.bmp",
@@ -251,7 +244,7 @@ class TestTesseract(BaseTest):
         self.assertEqual(popen.call_count, 2)
 
     @patch("pyocr.tesseract.get_version")
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("subprocess.Popen")
     def test_detect_orientation_tesseract4(self, popen, temp_dir, get_version):
         get_version.return_value = (4, 0, 0)
@@ -284,7 +277,7 @@ class TestTesseract(BaseTest):
             )
 
     @patch("pyocr.tesseract.get_version")
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("subprocess.Popen")
     def test_detect_orientation_tesseract4_non_rgb_image(self, popen, temp_dir,
                                                          get_version):
@@ -321,7 +314,7 @@ class TestTesseract(BaseTest):
             )
 
     @patch("pyocr.tesseract.get_version")
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("subprocess.Popen")
     def test_detect_orientation_tesseract4_with_lang(self, popen, temp_dir,
                                                      get_version):
@@ -356,7 +349,7 @@ class TestTesseract(BaseTest):
             )
 
     @patch("pyocr.tesseract.get_version")
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("subprocess.Popen")
     def test_detect_orientation_tesseract4_error(self, popen, temp_dir,
                                                  get_version):
@@ -386,7 +379,7 @@ class TestTesseract(BaseTest):
             self.assertIn("Error initializing tesseract", te.exception.message)
 
     @patch("pyocr.tesseract.get_version")
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("subprocess.Popen")
     def test_detect_orientation_tesseract4_bad_output(self, popen, temp_dir,
                                                       get_version):
@@ -421,7 +414,7 @@ class TestTesseract(BaseTest):
             self.assertIn("No script found in image", te.exception.message)
 
     @patch("pyocr.tesseract.get_version")
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("subprocess.Popen")
     def test_detect_orientation_tesseract3(self, popen, temp_dir, get_version):
         get_version.return_value = (3, 5, 0)
@@ -454,7 +447,7 @@ class TestTesseract(BaseTest):
             )
 
     @patch("pyocr.tesseract.get_version")
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("subprocess.Popen")
     def test_detect_orientation_tesseract3_with_lang(self, popen, temp_dir,
                                                      get_version):
@@ -488,7 +481,7 @@ class TestTesseract(BaseTest):
             )
 
     @patch("pyocr.tesseract.get_version")
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("subprocess.Popen")
     def test_detect_orientation_tesseract3_error(self, popen, temp_dir,
                                                  get_version):
@@ -518,7 +511,7 @@ class TestTesseract(BaseTest):
             self.assertIn("Error initializing tesseract", te.exception.message)
 
     @patch("pyocr.tesseract.get_version")
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("subprocess.Popen")
     def test_detect_orientation_tesseract3_bad_output(self, popen, temp_dir,
                                                       get_version):
@@ -565,7 +558,7 @@ class TestTesseractTxt(BaseTest):
         self.builder = builders.TextBuilder()
 
     @patch("pyocr.tesseract.get_version")
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_image_to_string_defaults_to_text_buidler(self, run_tesseract,
@@ -587,7 +580,7 @@ class TestTesseractTxt(BaseTest):
             configs=self.builder.tesseract_configs,
         )
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_lang(self, run_tesseract, copen, temp_dir):
@@ -607,7 +600,7 @@ class TestTesseractTxt(BaseTest):
             configs=self.builder.tesseract_configs,
         )
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_text(self, run_tesseract, copen, temp_dir):
@@ -627,7 +620,7 @@ class TestTesseractTxt(BaseTest):
             configs=self.builder.tesseract_configs,
         )
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_text_non_rgb_image(self, run_tesseract, copen, temp_dir):
@@ -649,7 +642,7 @@ class TestTesseractTxt(BaseTest):
             configs=self.builder.tesseract_configs,
         )
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_text_error(self, run_tesseract, copen, temp_dir):
@@ -669,7 +662,7 @@ class TestTesseractTxt(BaseTest):
             configs=self.builder.tesseract_configs,
         )
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_text_error_file(self, run_tesseract, copen, temp_dir):
@@ -687,7 +680,7 @@ class TestTesseractTxt(BaseTest):
             configs=self.builder.tesseract_configs,
         )
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_text_cannot_open_file(self, run_tesseract, copen, temp_dir):
@@ -705,7 +698,7 @@ class TestTesseractTxt(BaseTest):
             configs=self.builder.tesseract_configs,
         )
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_text_no_output(self, run_tesseract, copen, temp_dir):
@@ -740,7 +733,7 @@ class TestTesseractCharBox(BaseTest):
         self.image = Image.new(mode="RGB", size=(1, 1))
         self.builder = tesseract.CharBoxBuilder()
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_char(self, run_tesseract, copen, temp_dir):
@@ -761,7 +754,7 @@ class TestTesseractCharBox(BaseTest):
             configs=self.builder.tesseract_configs,
         )
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_char_error(self, run_tesseract, copen, temp_dir):
@@ -781,7 +774,7 @@ class TestTesseractCharBox(BaseTest):
             configs=self.builder.tesseract_configs,
         )
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_char_no_output(self, run_tesseract, copen, temp_dir):
@@ -875,7 +868,7 @@ class TestTesseractDigits(BaseTest):
         self.builder = builders.DigitBuilder()
         self.image = Image.new(mode="RGB", size=(1, 1))
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_digits(self, run_tesseract, copen, temp_dir):
@@ -907,7 +900,7 @@ class TestTesseractWordBox(BaseTest):
         self.image = Image.new(mode="RGB", size=(1, 1))
         self.builder = builders.WordBoxBuilder()
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_word(self, run_tesseract, copen, temp_dir):
@@ -930,7 +923,7 @@ class TestTesseractWordBox(BaseTest):
             configs=self.builder.tesseract_configs,
         )
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_word_error(self, run_tesseract, copen, temp_dir):
@@ -951,7 +944,7 @@ class TestTesseractWordBox(BaseTest):
             configs=self.builder.tesseract_configs,
         )
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_word_no_output(self, run_tesseract, copen, temp_dir):
@@ -985,7 +978,7 @@ class TestTesseractLineBox(BaseTest):
         self.image = Image.new(mode="RGB", size=(1, 1))
         self.builder = builders.LineBoxBuilder()
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_line(self, run_tesseract, copen, temp_dir):
@@ -1010,7 +1003,7 @@ class TestTesseractLineBox(BaseTest):
             configs=self.builder.tesseract_configs,
         )
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_line_error(self, run_tesseract, copen, temp_dir):
@@ -1033,7 +1026,7 @@ class TestTesseractLineBox(BaseTest):
             configs=self.builder.tesseract_configs,
         )
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_line_no_output(self, run_tesseract, copen, temp_dir):
@@ -1067,7 +1060,7 @@ class TestTesseractDigitsLineBox(BaseTest):
         self.image = Image.new(mode="RGB", size=(1, 1))
         self.builder = builders.DigitLineBoxBuilder()
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_line(self, run_tesseract, copen, temp_dir):
@@ -1090,7 +1083,7 @@ class TestTesseractDigitsLineBox(BaseTest):
             configs=self.builder.tesseract_configs,
         )
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_line_error(self, run_tesseract, copen, temp_dir):
@@ -1111,7 +1104,7 @@ class TestTesseractDigitsLineBox(BaseTest):
             configs=self.builder.tesseract_configs,
         )
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_line_no_output(self, run_tesseract, copen, temp_dir):

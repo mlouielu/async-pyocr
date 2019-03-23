@@ -22,7 +22,6 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import contextlib
 
 from . import builders
 from .builders import DigitBuilder  # backward compatibility
@@ -180,7 +179,7 @@ def detect_orientation(image, lang=None):
         TesseractError --- if no script detected on the image
     """
     _set_environment()
-    with temp_dir() as tmpdir:
+    with tempfile.TemporaryDirectory() as tmpdir:
         command = [TESSERACT_CMD, "input.bmp", 'stdout', psm_parameter(), "0"]
         version = get_version()
         if lang is not None:
@@ -324,20 +323,6 @@ class ReOpenableTempfile(object):  # pragma: no cover
             self.name = None
 
 
-@contextlib.contextmanager
-def temp_dir():
-    """
-    A context manager for maintaining a temporary directory
-    """
-    # NOTE: Drop this as soon as we don't support Python 2.7 anymore, because
-    # since Python 3.2 there is a context manager called TemporaryDirectory().
-    path = tempfile.mkdtemp(prefix='tess_')
-    try:
-        yield path
-    finally:
-        shutil.rmtree(path)
-
-
 def image_to_string(image, lang=None, builder=None):
     '''
     Runs tesseract on the specified image. First, the image is written to disk,
@@ -359,7 +344,7 @@ def image_to_string(image, lang=None, builder=None):
 
     if builder is None:
         builder = builders.TextBuilder()
-    with temp_dir() as tmpdir:
+    with tempfile.TemporaryDirectory() as tmpdir:
         if image.mode != "RGB":
             image = image.convert("RGB")
         image.save(os.path.join(tmpdir, "input.bmp"))
