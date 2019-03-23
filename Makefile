@@ -1,4 +1,3 @@
-VERSION_FILE = src/pyocr/_version.py
 PYTHON = python3
 
 build: build_c build_py
@@ -7,17 +6,10 @@ install: install_py install_c
 
 uninstall: uninstall_py
 
-build_py: ${VERSION_FILE}
+build_py:
 	${PYTHON} ./setup.py build
 
 build_c:
-
-${VERSION_FILE}:
-	echo -n "version = \"" >| $@
-	echo -n $(shell git describe --always) >> $@
-	echo "\"" >> $@
-
-version: ${VERSION_FILE}
 
 doc: install_py
 	(cd doc && make html)
@@ -27,7 +19,7 @@ check:
 	flake8
 # 	pydocstyle src/pyocr
 
-test: ${VERSION_FILE}
+test:
 	tox
 
 linux_exe:
@@ -45,7 +37,6 @@ else
 	git tag -a ${RELEASE} -m ${RELEASE}
 	git push origin ${RELEASE}
 	make clean
-	make version
 	${PYTHON} ./setup.py sdist
 	twine upload dist/pyocr-${RELEASE}.tar.gz
 	@echo "All done"
@@ -55,9 +46,8 @@ clean:
 	rm -rf doc/build
 	rm -rf build dist *.egg-info
 	rm -rf src/pyocr/__pycache__
-	rm -f ${VERSION_FILE}
 
-install_py: ${VERSION_FILE}
+install_py:
 	${PYTHON} ./setup.py install ${PIP_ARGS}
 
 install_c:
@@ -92,5 +82,4 @@ help:
 	release \
 	test \
 	uninstall \
-	uninstall_c \
-	version
+	uninstall_c
