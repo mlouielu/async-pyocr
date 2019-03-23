@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 '''
 tesseract.py is a wrapper for google's Tesseract-OCR
 ( http://code.google.com/p/tesseract-ocr/ ).

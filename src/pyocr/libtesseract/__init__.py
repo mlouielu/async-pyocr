@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 '''
 libtesseract/ is a wrapper for google's Tesseract-OCR C API
 ( http://code.google.com/p/tesseract-ocr/ ).
