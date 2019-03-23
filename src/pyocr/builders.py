@@ -6,13 +6,9 @@ words + boxes : WordBoxBuilder
 lines + words + boxes : LineBoxBuilder
 """
 
-try:
-    from HTMLParser import HTMLParser
-except ImportError:
-    from html.parser import HTMLParser
-
-import xml.dom.minidom
+from html.parser import HTMLParser
 import logging
+import xml.dom.minidom
 
 logger = logging.getLogger(__name__)
 
