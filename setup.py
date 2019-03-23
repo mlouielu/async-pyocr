@@ -21,11 +21,7 @@ setup(
     description=("A Python wrapper for OCR engines (Tesseract, Cuneiform,"
                  " etc)"),
     keywords="tesseract cuneiform ocr",
-    url="https://github.com/openpaperwork/pyocr",
-    download_url=(
-        "https://github.com/openpaperwork/pyocr/archive/"
-        "{}.zip".format(version)
-    ),
+    url="https://gitlab.gnome.org/World/OpenPaperwork/pyocr",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
