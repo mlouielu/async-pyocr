@@ -27,17 +27,17 @@ class TestCuneiform(BaseTest):
     def test_version(self, popen):
         stdout = MagicMock()
         stdout.stdout.read.return_value = (
-            "Cuneiform for Linux 1.1.0\n"
-            "Usage: cuneiform [-l languagename -f format --dotmatrix --fax"
-            " --singlecolumn -o result_file] imagefile"
-        ).encode()
+            b"Cuneiform for Linux 1.1.0\n"
+            b"Usage: cuneiform [-l languagename -f format --dotmatrix --fax"
+            b" --singlecolumn -o result_file] imagefile"
+        )
         popen.return_value = stdout
         self.assertSequenceEqual(cuneiform.get_version(), (1, 1, 0))
 
     @patch("subprocess.Popen")
     def test_version_error(self, popen):
         stdout = MagicMock()
-        stdout.stdout.read.return_value = "\n".encode()
+        stdout.stdout.read.return_value = b"\n"
         popen.return_value = stdout
         self.assertIsNone(cuneiform.get_version())
 
@@ -45,10 +45,10 @@ class TestCuneiform(BaseTest):
     def test_langs(self, popen):
         stdout = MagicMock()
         stdout.stdout.read.return_value = (
-            "Cuneiform for Linux 1.1.0\n"
-            "Supported languages: eng ger fra rus swe spa ita ruseng ukr srp "
-            "hrv pol dan por dut cze rum hun bul slv lav lit est tur."
-        ).encode()
+            b"Cuneiform for Linux 1.1.0\n"
+            b"Supported languages: eng ger fra rus swe spa ita ruseng ukr srp "
+            b"hrv pol dan por dut cze rum hun bul slv lav lit est tur."
+        )
         popen.return_value = stdout
         langs = cuneiform.get_available_languages()
         self.assertIn("eng", langs)
@@ -87,9 +87,7 @@ class TestCuneiformTxt(BaseTest):
         self.image = Image.new(mode="RGB", size=(1, 1))
         self.text_file = StringIO(self._get_file_content("text"))
         self.stdout = MagicMock()
-        self.stdout.stdout.read.return_value = (
-            "Cuneiform for Linux 1.1.0\n".encode()
-        )
+        self.stdout.stdout.read.return_value = b"Cuneiform for Linux 1.1.0\n"
         self.stdout.wait.return_value = 0
         self.tmp_filename = "/tmp/cuneiform_n0qfk87otxt"
         self.enter = MagicMock()
@@ -210,9 +208,7 @@ class TestCuneiformWordBox(BaseTest):
         self.image = Image.new(mode="RGB", size=(1, 1))
         self.text_file = StringIO(self._get_file_content("cuneiform.words"))
         self.stdout = MagicMock()
-        self.stdout.stdout.read.return_value = (
-            "Cuneiform for Linux 1.1.0\n".encode()
-        )
+        self.stdout.stdout.read.return_value = b"Cuneiform for Linux 1.1.0\n"
         self.stdout.wait.return_value = 0
         self.tmp_filename = "/tmp/cuneiform_n0qfk87otxt"
         self.enter = MagicMock()
@@ -265,9 +261,7 @@ class TestCuneiformLineBox(BaseTest):
         self.image = Image.new(mode="RGB", size=(1, 1))
         self.text_file = StringIO(self._get_file_content("cuneiform.lines"))
         self.stdout = MagicMock()
-        self.stdout.stdout.read.return_value = (
-            "Cuneiform for Linux 1.1.0\n".encode()
-        )
+        self.stdout.stdout.read.return_value = b"Cuneiform for Linux 1.1.0\n"
         self.stdout.wait.return_value = 0
         self.tmp_filename = "/tmp/cuneiform_n0qfk87otxt"
         self.enter = MagicMock()
