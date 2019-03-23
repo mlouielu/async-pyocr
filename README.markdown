@@ -40,7 +40,7 @@ sudo pip3 install pyocr  # Python 3.X
 or the manual way:
 ```sh
 mkdir -p ~/git ; cd git
-git clone https://github.com/openpaperwork/pyocr.git
+git clone https://gitlab.gnome.org/World/OpenPaperwork/pyocr.git
 cd pyocr
 make install  # will run 'python ./setup.py install'
 ```
@@ -291,24 +291,24 @@ Tests are made to be run without external dependencies (no Tesseract or Cuneifor
 
 If you want to run OCR on natural scenes (photos, etc), you will have to filter
 the image first. There are many algorithms possible to do that. One of those
-who gives the best results is
-[Stroke Width Transform](https://github.com/openpaperwork/libpillowfight#stroke-width-transformation).
+who gives the best results is [Stroke Width
+Transform](https://gitlab.gnome.org/World/OpenPaperwork/libpillowfight#stroke-width-transformation).
 
 
 ## Contact
 
-* [Mailing-list](https://github.com/openpaperwork/paperwork/wiki/Contact#mailing-list)
-* [Bug tracker](https://github.com/openpaperwork/pyocr/issues/)
+* [Mailing-list](https://gitlab.gnome.org/World/OpenPaperwork/paperwork/wikis/Contact#mailing-list)
+* [Bug tracker](https://gitlab.gnome.org/World/OpenPaperwork/pyocr/issues)
 
 
 ## Applications that use PyOCR
 
 * [Mayan EDMS](http://mayan-edms.com/)
 * [Paperless](https://github.com/danielquinn/paperless#readme)
-* [Paperwork](https://github.com/openpaperwork/paperwork#readme)
+* [Paperwork](https://gitlab.gnome.org/World/OpenPaperwork/paperwork#readme)
 
 If you know of any other applications that use Pyocr, please
-[tell us](https://github.com/openpaperwork/paperwork/wiki/Contact#mailing-list) :-)
+[tell us](https://gitlab.gnome.org/World/OpenPaperwork/paperwork/wikis/Contact#mailing-list) :-)
 
 ## Copyright
 
@@ -317,4 +317,4 @@ Copyright belongs to the authors of each piece of code
 (see the file AUTHORS for the contributors list, and
 ```git blame``` to know which lines belong to which author).
 
-https://github.com/openpaperwork/pyocr
+https://gitlab.gnome.org/World/OpenPaperwork/pyocr
