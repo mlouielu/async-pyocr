@@ -33,7 +33,6 @@ systems (*BSD, etc). It may or may not work on Windows, MacOSX, etc.
 ## Installation
 
 ```sh
-sudo pip install pyocr  # Python 2.7
 sudo pip3 install pyocr  # Python 3.X
 ```
 
@@ -262,7 +261,7 @@ Beware this code hasn't been adapted to libtesseract 3 yet.
 
 ## Dependencies
 
-* PyOCR requires python 2.7 or later. Python 3 is supported.
+* PyOCR requires Python 3.4 or later.
 * You will need [Pillow](https://github.com/python-imaging/Pillow)
   or Python Imaging Library (PIL). Under Debian/Ubuntu, Pillow is in
   the package ```python-pil``` (```python3-pil``` for the Python 3

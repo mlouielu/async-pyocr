@@ -17,12 +17,12 @@ https://gitlab.gnome.org/World/OpenPaperwork/pyocr#readme
 import codecs
 from io import BytesIO
 import re
+import shutil
 import subprocess
 import tempfile
 
 from . import builders
 from .error import CuneiformError
-from . import util
 
 
 # CHANGE THIS IF CUNEIFORM IS NOT IN YOUR PATH, OR IS NAMED DIFFERENTLY
@@ -108,7 +108,7 @@ def image_to_string(image, lang=None, builder=None):
 
 
 def is_available():
-    return util.is_on_path(CUNEIFORM_CMD)
+    return shutil.which(CUNEIFORM_CMD) is not None
 
 
 def get_available_languages():

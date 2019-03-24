@@ -1,7 +1,21 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import sys
 from setuptools import setup
+
+
+# NOTE: This file must remain Python 2 compatible for the foreseeable future,
+# to ensure that we error out properly for people with outdated setuptools
+# and/or pip.
+if sys.version_info < (3, 4):
+    error = """
+Beginning with PyOCR 0.7, Python 3.4 or above is required.
+
+This may be due to an out of date pip.
+
+Make sure you have pip >= 9.0.1.
+"""
+    sys.exit(error)
 
 setup(
     name="pyocr",
@@ -16,9 +30,11 @@ setup(
         " (GPLv3+)",
         "Operating System :: POSIX :: Linux",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.3",
+        "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
         "Topic :: Multimedia :: Graphics :: Capture :: Scanners",
         "Topic :: Multimedia :: Graphics :: Graphics Conversion",
         "Topic :: Scientific/Engineering :: Image Recognition",
@@ -36,9 +52,9 @@ setup(
     data_files=[],
     scripts=[],
     zip_safe=True,
+    python_requires='>=3.4',
     install_requires=[
         "Pillow",
-        "six",
     ],
     setup_requires=[
         'setuptools_scm',

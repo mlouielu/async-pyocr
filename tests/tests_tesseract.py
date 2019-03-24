@@ -3,21 +3,8 @@ import os
 import subprocess
 
 from io import StringIO
-try:
-    from unittest.mock import patch, MagicMock
-except ImportError:
-    from mock import patch, MagicMock
-try:
-    from tempfile import TemporaryDirectory
-except ImportError:
-    from backports.tempfile import TemporaryDirectory
-
-try:
-    FileNotFoundError
-except NameError:
-    # python3 does not have FileNotFoundError and PermissionError
-    FileNotFoundError = IOError
-    PermissionError = IOError
+from tempfile import TemporaryDirectory
+from unittest.mock import patch, MagicMock
 
 from PIL import Image
 
@@ -35,21 +22,21 @@ class TestTesseract(BaseTest):
         self.stdout = MagicMock()
         self.image = Image.new(mode="RGB", size=(1, 1))
         self.message = (
-            "tesseract 4.0.0\n leptonica-1.76.0\n"
-            "  libgif 5.1.4 : libjpeg 6b (libjpeg-turbo 1.5.2)"
-            " : libpng 1.6.34 "
-            ": libtiff 4.0.9 : zlib 1.2.11 : libwebp 0.6.1"
-            " : libopenjp2 2.3.0\n"
-            " Found AVX2\n Found AVX\n Found SSE\n"
+            b"tesseract 4.0.0\n leptonica-1.76.0\n"
+            b"  libgif 5.1.4 : libjpeg 6b (libjpeg-turbo 1.5.2)"
+            b" : libpng 1.6.34 "
+            b": libtiff 4.0.9 : zlib 1.2.11 : libwebp 0.6.1"
+            b" : libopenjp2 2.3.0\n"
+            b" Found AVX2\n Found AVX\n Found SSE\n"
         )
-        self.stdout.stdout.read.return_value = self.message.encode()
+        self.stdout.stdout.read.return_value = self.message
         self.stdout.wait.return_value = 0
 
-    @patch("pyocr.util.is_on_path")
-    def test_available(self, is_on_path):
-        is_on_path.return_value = True
+    @patch("shutil.which")
+    def test_available(self, which):
+        which.return_value = True
         self.assertTrue(tesseract.is_available())
-        is_on_path.assert_called_once_with("tesseract")
+        which.assert_called_once_with("tesseract")
 
     @patch("subprocess.Popen")
     def test_version_error(self, popen):
@@ -58,7 +45,7 @@ class TestTesseract(BaseTest):
         with self.assertRaises(tesseract.TesseractError) as te:
             tesseract.get_version()
         self.assertEqual(te.exception.status, 2)
-        self.assertEqual(te.exception.message, self.message)
+        self.assertEqual(te.exception.message, self.message.decode())
 
     @patch("subprocess.Popen")
     def test_version_tesseract4(self, popen):
@@ -67,49 +54,49 @@ class TestTesseract(BaseTest):
 
     @patch("subprocess.Popen")
     def test_version_tesseract4dev(self, popen):
-        message = self.message.replace("tesseract 4.0.0",
-                                       "tesseract 4.00.00dev2")
-        self.stdout.stdout.read.return_value = message.encode()
+        message = self.message.replace(b"tesseract 4.0.0",
+                                       b"tesseract 4.00.00dev2")
+        self.stdout.stdout.read.return_value = message
         popen.return_value = self.stdout
         self.assertSequenceEqual(tesseract.get_version(), (4, 0, 0))
 
     @patch("subprocess.Popen")
     def test_version_tesseract4alpha(self, popen):
-        message = self.message.replace("tesseract 4.0.0",
-                                       "tesseract 4.00.00alpha")
-        self.stdout.stdout.read.return_value = message.encode()
+        message = self.message.replace(b"tesseract 4.0.0",
+                                       b"tesseract 4.00.00alpha")
+        self.stdout.stdout.read.return_value = message
         popen.return_value = self.stdout
         self.assertSequenceEqual(tesseract.get_version(), (4, 0, 0))
 
     @patch("subprocess.Popen")
     def test_version_tesseract3(self, popen):
-        message = self.message.replace("tesseract 4.0.0",
-                                       "tesseract 3.05")
-        self.stdout.stdout.read.return_value = message.encode()
+        message = self.message.replace(b"tesseract 4.0.0",
+                                       b"tesseract 3.05")
+        self.stdout.stdout.read.return_value = message
         popen.return_value = self.stdout
         self.assertSequenceEqual(tesseract.get_version(), (3, 5, 0))
 
     @patch("subprocess.Popen")
     def test_version_tesseract3_no_minor(self, popen):
-        message = self.message.replace("tesseract 4.0.0",
-                                       "tesseract 3.0")
-        self.stdout.stdout.read.return_value = message.encode()
+        message = self.message.replace(b"tesseract 4.0.0",
+                                       b"tesseract 3.0")
+        self.stdout.stdout.read.return_value = message
         popen.return_value = self.stdout
         self.assertSequenceEqual(tesseract.get_version(), (3, 0, 0))
 
     @patch("subprocess.Popen")
     def test_version_windows(self, popen):
-        message = self.message.replace("tesseract 4.0.0",
-                                       "tesseract v4.0.0.20181030")
-        self.stdout.stdout.read.return_value = message.encode()
+        message = self.message.replace(b"tesseract 4.0.0",
+                                       b"tesseract v4.0.0.20181030")
+        self.stdout.stdout.read.return_value = message
         popen.return_value = self.stdout
         self.assertSequenceEqual(tesseract.get_version(), (4, 0, 0))
 
     @patch("subprocess.Popen")
     def test_version_error_splitting(self, popen):
-        message = self.message.replace("tesseract 4.0.0",
-                                       "tesseract 3")
-        self.stdout.stdout.read.return_value = message.encode()
+        message = self.message.replace(b"tesseract 4.0.0",
+                                       b"tesseract 3")
+        self.stdout.stdout.read.return_value = message
         popen.return_value = self.stdout
         with self.assertRaises(tesseract.TesseractError) as te:
             tesseract.get_version()
@@ -119,9 +106,9 @@ class TestTesseract(BaseTest):
 
     @patch("subprocess.Popen")
     def test_version_error_nan(self, popen):
-        message = self.message.replace("tesseract 4.0.0",
-                                       "tesseract A.B.C")
-        self.stdout.stdout.read.return_value = message.encode()
+        message = self.message.replace(b"tesseract 4.0.0",
+                                       b"tesseract A.B.C")
+        self.stdout.stdout.read.return_value = message
         popen.return_value = self.stdout
         with self.assertRaises(tesseract.TesseractError) as te:
             tesseract.get_version()
@@ -131,14 +118,13 @@ class TestTesseract(BaseTest):
 
     @patch("subprocess.Popen")
     def test_langs(self, popen):
-        message = (
-            "List of available languages (4):\n"
-            "eng\n"
-            "fra\n"
-            "jpn\n"
-            "osd\n"
+        self.stdout.stdout.read.return_value = (
+            b"List of available languages (4):\n"
+            b"eng\n"
+            b"fra\n"
+            b"jpn\n"
+            b"osd\n"
         )
-        self.stdout.stdout.read.return_value = message.encode()
         popen.return_value = self.stdout
         langs = tesseract.get_available_languages()
         for lang in ("eng", "fra", "jpn", "osd"):
@@ -151,10 +137,7 @@ class TestTesseract(BaseTest):
 
     @patch("subprocess.Popen")
     def test_langs_error(self, popen):
-        message = (
-            "No languages\n"
-        )
-        self.stdout.stdout.read.return_value = message.encode()
+        self.stdout.stdout.read.return_value = b"No languages\n"
         self.stdout.wait.return_value = 1
         popen.return_value = self.stdout
         with self.assertRaises(tesseract.TesseractError) as te:
@@ -205,23 +188,16 @@ class TestTesseract(BaseTest):
             ]
         )
 
-    def test_temp_dir(self):
-        with tesseract.temp_dir() as tmpdir:
-            with open(os.path.join(tmpdir, "example.txt"), "w") as fh:
-                fh.write("test")
-        self.assertFalse(os.path.exists(os.path.join(tmpdir, "example.txt")))
-        self.assertFalse(os.path.exists(os.path.join(tmpdir)))
-
     @patch("pyocr.tesseract.get_version")
     @patch("subprocess.Popen")
     def test_run_tesseract(self, popen, get_version):
         message = (
-            "Tesseract Open Source OCR Engine v4.0.0 with Leptonica\n"
+            b"Tesseract Open Source OCR Engine v4.0.0 with Leptonica\n"
         )
-        self.stdout.stdout.read.return_value = message.encode()
+        self.stdout.stdout.read.return_value = message
         popen.return_value = self.stdout
 
-        with tesseract.temp_dir() as tmpdir:
+        with TemporaryDirectory() as tmpdir:
             self.image.save(os.path.join(tmpdir, "input.bmp"))
             status, error = tesseract.run_tesseract(
                 "input.bmp",
@@ -229,7 +205,7 @@ class TestTesseract(BaseTest):
                 cwd=tmpdir,
             )
         self.assertEqual(status, 0)
-        self.assertEqual(error.decode(), message)
+        self.assertEqual(error, message)
         popen.assert_called_once_with(
             ["tesseract", "input.bmp", "output"],
             cwd=tmpdir,
@@ -241,7 +217,7 @@ class TestTesseract(BaseTest):
 
         get_version.return_value = (4, 0, 0)
         builder = builders.TextBuilder()
-        with tesseract.temp_dir() as tmpdir:
+        with TemporaryDirectory() as tmpdir:
             self.image.save(os.path.join(tmpdir, "input2.bmp"))
             status, error = tesseract.run_tesseract(
                 "input2.bmp",
@@ -252,7 +228,7 @@ class TestTesseract(BaseTest):
                 configs=builder.tesseract_configs,
             )
         self.assertEqual(status, 0)
-        self.assertEqual(error.decode(), message)
+        self.assertEqual(error, message)
         popen.assert_called_with(
             ["tesseract", "input2.bmp", "output2", "-l", "fra", "--psm", "3"],
             cwd=tmpdir,
@@ -264,19 +240,18 @@ class TestTesseract(BaseTest):
         self.assertEqual(popen.call_count, 2)
 
     @patch("pyocr.tesseract.get_version")
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("subprocess.Popen")
     def test_detect_orientation_tesseract4(self, popen, temp_dir, get_version):
         get_version.return_value = (4, 0, 0)
-        message = (
-            "Page number: 0\n"
-            "Orientation in degrees: 90\n"
-            "Rotate: 270\n"
-            "Orientation confidence: 9.30\n"
-            "Script: Latin\n"
-            "Script confidence: 8.06\n"
+        self.stdout.stdout.read.return_value = (
+            b"Page number: 0\n"
+            b"Orientation in degrees: 90\n"
+            b"Rotate: 270\n"
+            b"Orientation confidence: 9.30\n"
+            b"Script: Latin\n"
+            b"Script confidence: 8.06\n"
         )
-        self.stdout.stdout.read.return_value = message.encode()
         popen.return_value = self.stdout
         with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
@@ -297,7 +272,7 @@ class TestTesseract(BaseTest):
             )
 
     @patch("pyocr.tesseract.get_version")
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("subprocess.Popen")
     def test_detect_orientation_tesseract4_non_rgb_image(self, popen, temp_dir,
                                                          get_version):
@@ -305,15 +280,14 @@ class TestTesseract(BaseTest):
         that image is converted in function."""
         image = self.image.convert("L")
         get_version.return_value = (4, 0, 0)
-        message = (
-            "Page number: 0\n"
-            "Orientation in degrees: 90\n"
-            "Rotate: 270\n"
-            "Orientation confidence: 9.30\n"
-            "Script: Latin\n"
-            "Script confidence: 8.06\n"
+        self.stdout.stdout.read.return_value = (
+            b"Page number: 0\n"
+            b"Orientation in degrees: 90\n"
+            b"Rotate: 270\n"
+            b"Orientation confidence: 9.30\n"
+            b"Script: Latin\n"
+            b"Script confidence: 8.06\n"
         )
-        self.stdout.stdout.read.return_value = message.encode()
         popen.return_value = self.stdout
         with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
@@ -334,20 +308,19 @@ class TestTesseract(BaseTest):
             )
 
     @patch("pyocr.tesseract.get_version")
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("subprocess.Popen")
     def test_detect_orientation_tesseract4_with_lang(self, popen, temp_dir,
                                                      get_version):
         get_version.return_value = (4, 0, 0)
-        message = (
-            "Page number: 0\n"
-            "Orientation in degrees: 90\n"
-            "Rotate: 270\n"
-            "Orientation confidence: 9.30\n"
-            "Script: Latin\n"
-            "Script confidence: 8.06\n"
+        self.stdout.stdout.read.return_value = (
+            b"Page number: 0\n"
+            b"Orientation in degrees: 90\n"
+            b"Rotate: 270\n"
+            b"Orientation confidence: 9.30\n"
+            b"Script: Latin\n"
+            b"Script confidence: 8.06\n"
         )
-        self.stdout.stdout.read.return_value = message.encode()
         popen.return_value = self.stdout
         with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
@@ -369,15 +342,14 @@ class TestTesseract(BaseTest):
             )
 
     @patch("pyocr.tesseract.get_version")
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("subprocess.Popen")
     def test_detect_orientation_tesseract4_error(self, popen, temp_dir,
                                                  get_version):
         get_version.return_value = (4, 0, 0)
-        message = (
-            "Could not initialize tesseract\n"
+        self.stdout.stdout.read.return_value = (
+            b"Could not initialize tesseract\n"
         )
-        self.stdout.stdout.read.return_value = message.encode()
         popen.return_value = self.stdout
         with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
@@ -399,20 +371,19 @@ class TestTesseract(BaseTest):
             self.assertIn("Error initializing tesseract", te.exception.message)
 
     @patch("pyocr.tesseract.get_version")
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("subprocess.Popen")
     def test_detect_orientation_tesseract4_bad_output(self, popen, temp_dir,
                                                       get_version):
         get_version.return_value = (4, 0, 0)
-        message = (
-            "Page number: 0\n"
-            "Orientation in degrees: ABC\n"
-            "Rotate: 270\n"
-            "Orientation confidence: AB.CD\n"
-            "Script: Latin\n"
-            "Script confidence: 8.06\n"
+        self.stdout.stdout.read.return_value = (
+            b"Page number: 0\n"
+            b"Orientation in degrees: ABC\n"
+            b"Rotate: 270\n"
+            b"Orientation confidence: AB.CD\n"
+            b"Script: Latin\n"
+            b"Script confidence: 8.06\n"
         )
-        self.stdout.stdout.read.return_value = message.encode()
         popen.return_value = self.stdout
         with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
@@ -434,19 +405,18 @@ class TestTesseract(BaseTest):
             self.assertIn("No script found in image", te.exception.message)
 
     @patch("pyocr.tesseract.get_version")
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("subprocess.Popen")
     def test_detect_orientation_tesseract3(self, popen, temp_dir, get_version):
         get_version.return_value = (3, 5, 0)
-        message = (
-            "Page number: 0\n"
-            "Orientation in degrees: 90\n"
-            "Rotate: 270\n"
-            "Orientation confidence: 9.30\n"
-            "Script: Latin\n"
-            "Script confidence: 8.06\n"
+        self.stdout.stdout.read.return_value = (
+            b"Page number: 0\n"
+            b"Orientation in degrees: 90\n"
+            b"Rotate: 270\n"
+            b"Orientation confidence: 9.30\n"
+            b"Script: Latin\n"
+            b"Script confidence: 8.06\n"
         )
-        self.stdout.stdout.read.return_value = message.encode()
         popen.return_value = self.stdout
         with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
@@ -467,20 +437,19 @@ class TestTesseract(BaseTest):
             )
 
     @patch("pyocr.tesseract.get_version")
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("subprocess.Popen")
     def test_detect_orientation_tesseract3_with_lang(self, popen, temp_dir,
                                                      get_version):
         get_version.return_value = (3, 5, 0)
-        message = (
-            "Page number: 0\n"
-            "Orientation in degrees: 90\n"
-            "Rotate: 270\n"
-            "Orientation confidence: 9.30\n"
-            "Script: Latin\n"
-            "Script confidence: 8.06\n"
+        self.stdout.stdout.read.return_value = (
+            b"Page number: 0\n"
+            b"Orientation in degrees: 90\n"
+            b"Rotate: 270\n"
+            b"Orientation confidence: 9.30\n"
+            b"Script: Latin\n"
+            b"Script confidence: 8.06\n"
         )
-        self.stdout.stdout.read.return_value = message.encode()
         popen.return_value = self.stdout
         with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
@@ -501,15 +470,14 @@ class TestTesseract(BaseTest):
             )
 
     @patch("pyocr.tesseract.get_version")
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("subprocess.Popen")
     def test_detect_orientation_tesseract3_error(self, popen, temp_dir,
                                                  get_version):
         get_version.return_value = (3, 5, 0)
-        message = (
-            "Could not initialize tesseract\n"
+        self.stdout.stdout.read.return_value = (
+            b"Could not initialize tesseract\n"
         )
-        self.stdout.stdout.read.return_value = message.encode()
         popen.return_value = self.stdout
         with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
@@ -531,20 +499,19 @@ class TestTesseract(BaseTest):
             self.assertIn("Error initializing tesseract", te.exception.message)
 
     @patch("pyocr.tesseract.get_version")
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("subprocess.Popen")
     def test_detect_orientation_tesseract3_bad_output(self, popen, temp_dir,
                                                       get_version):
         get_version.return_value = (3, 5, 0)
-        message = (
-            "Page number: 0\n"
-            "Orientation in degrees: ABC\n"
-            "Rotate: 270\n"
-            "Orientation confidence: AB.CD\n"
-            "Script: Latin\n"
-            "Script confidence: 8.06\n"
+        self.stdout.stdout.read.return_value = (
+            b"Page number: 0\n"
+            b"Orientation in degrees: ABC\n"
+            b"Rotate: 270\n"
+            b"Orientation confidence: AB.CD\n"
+            b"Script: Latin\n"
+            b"Script confidence: 8.06\n"
         )
-        self.stdout.stdout.read.return_value = message.encode()
         popen.return_value = self.stdout
         with TemporaryDirectory(prefix="tess_") as tmpdir:
             enter = MagicMock()
@@ -578,7 +545,7 @@ class TestTesseractTxt(BaseTest):
         self.builder = builders.TextBuilder()
 
     @patch("pyocr.tesseract.get_version")
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_image_to_string_defaults_to_text_buidler(self, run_tesseract,
@@ -600,7 +567,7 @@ class TestTesseractTxt(BaseTest):
             configs=self.builder.tesseract_configs,
         )
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_lang(self, run_tesseract, copen, temp_dir):
@@ -620,7 +587,7 @@ class TestTesseractTxt(BaseTest):
             configs=self.builder.tesseract_configs,
         )
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_text(self, run_tesseract, copen, temp_dir):
@@ -640,7 +607,7 @@ class TestTesseractTxt(BaseTest):
             configs=self.builder.tesseract_configs,
         )
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_text_non_rgb_image(self, run_tesseract, copen, temp_dir):
@@ -662,7 +629,7 @@ class TestTesseractTxt(BaseTest):
             configs=self.builder.tesseract_configs,
         )
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_text_error(self, run_tesseract, copen, temp_dir):
@@ -682,7 +649,7 @@ class TestTesseractTxt(BaseTest):
             configs=self.builder.tesseract_configs,
         )
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_text_error_file(self, run_tesseract, copen, temp_dir):
@@ -700,7 +667,7 @@ class TestTesseractTxt(BaseTest):
             configs=self.builder.tesseract_configs,
         )
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_text_cannot_open_file(self, run_tesseract, copen, temp_dir):
@@ -718,7 +685,7 @@ class TestTesseractTxt(BaseTest):
             configs=self.builder.tesseract_configs,
         )
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_text_no_output(self, run_tesseract, copen, temp_dir):
@@ -753,7 +720,7 @@ class TestTesseractCharBox(BaseTest):
         self.image = Image.new(mode="RGB", size=(1, 1))
         self.builder = tesseract.CharBoxBuilder()
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_char(self, run_tesseract, copen, temp_dir):
@@ -774,7 +741,7 @@ class TestTesseractCharBox(BaseTest):
             configs=self.builder.tesseract_configs,
         )
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_char_error(self, run_tesseract, copen, temp_dir):
@@ -794,7 +761,7 @@ class TestTesseractCharBox(BaseTest):
             configs=self.builder.tesseract_configs,
         )
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_char_no_output(self, run_tesseract, copen, temp_dir):
@@ -864,14 +831,14 @@ class TestCharBoxBuilder(BaseTest):
             builders.Box("b", ((11, 12), (13, 14))),
             builders.Box("c", ((12, 13), (14, 15))),
             builders.Box("d", ((13, 14), (15, 16)), 87),
-            builders.Box(u"\xe9", ((14, 15), (16, 17)), 88),
+            builders.Box("\xe9", ((14, 15), (16, 17)), 88),
         ]
         builder.write_file(output, boxes)
         output.seek(0)
         output = output.read()
         for box in boxes:
             self.assertIn(box.content, output)
-            self.assertIn(u"{} {} {} {}".format(
+            self.assertIn("{} {} {} {}".format(
                 box.position[0][0], box.position[0][1],
                 box.position[1][0], box.position[1][1],
             ), output)
@@ -888,7 +855,7 @@ class TestTesseractDigits(BaseTest):
         self.builder = builders.DigitBuilder()
         self.image = Image.new(mode="RGB", size=(1, 1))
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_digits(self, run_tesseract, copen, temp_dir):
@@ -920,7 +887,7 @@ class TestTesseractWordBox(BaseTest):
         self.image = Image.new(mode="RGB", size=(1, 1))
         self.builder = builders.WordBoxBuilder()
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_word(self, run_tesseract, copen, temp_dir):
@@ -943,7 +910,7 @@ class TestTesseractWordBox(BaseTest):
             configs=self.builder.tesseract_configs,
         )
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_word_error(self, run_tesseract, copen, temp_dir):
@@ -964,7 +931,7 @@ class TestTesseractWordBox(BaseTest):
             configs=self.builder.tesseract_configs,
         )
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_word_no_output(self, run_tesseract, copen, temp_dir):
@@ -998,7 +965,7 @@ class TestTesseractLineBox(BaseTest):
         self.image = Image.new(mode="RGB", size=(1, 1))
         self.builder = builders.LineBoxBuilder()
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_line(self, run_tesseract, copen, temp_dir):
@@ -1023,7 +990,7 @@ class TestTesseractLineBox(BaseTest):
             configs=self.builder.tesseract_configs,
         )
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_line_error(self, run_tesseract, copen, temp_dir):
@@ -1046,7 +1013,7 @@ class TestTesseractLineBox(BaseTest):
             configs=self.builder.tesseract_configs,
         )
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_line_no_output(self, run_tesseract, copen, temp_dir):
@@ -1080,7 +1047,7 @@ class TestTesseractDigitsLineBox(BaseTest):
         self.image = Image.new(mode="RGB", size=(1, 1))
         self.builder = builders.DigitLineBoxBuilder()
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_line(self, run_tesseract, copen, temp_dir):
@@ -1103,7 +1070,7 @@ class TestTesseractDigitsLineBox(BaseTest):
             configs=self.builder.tesseract_configs,
         )
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_line_error(self, run_tesseract, copen, temp_dir):
@@ -1124,7 +1091,7 @@ class TestTesseractDigitsLineBox(BaseTest):
             configs=self.builder.tesseract_configs,
         )
 
-    @patch("pyocr.tesseract.temp_dir")
+    @patch("tempfile.TemporaryDirectory")
     @patch("codecs.open")
     @patch("pyocr.tesseract.run_tesseract")
     def test_line_no_output(self, run_tesseract, copen, temp_dir):
