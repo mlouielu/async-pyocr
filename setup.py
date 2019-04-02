@@ -18,11 +18,11 @@ Make sure you have pip >= 9.0.1.
     sys.exit(error)
 
 setup(
-    name="pyocr",
+    name="async-pyocr",
     description=("A Python wrapper for OCR engines (Tesseract, Cuneiform,"
-                 " etc)"),
+                 " etc), with async"),
     keywords="tesseract cuneiform ocr",
-    url="https://gitlab.gnome.org/World/OpenPaperwork/pyocr",
+    url="https://github.com/mlouielu/async-pyocr/",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
@@ -31,8 +31,6 @@ setup(
         "Operating System :: POSIX :: Linux",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.4",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Topic :: Multimedia :: Graphics :: Capture :: Scanners",
@@ -40,11 +38,11 @@ setup(
         "Topic :: Scientific/Engineering :: Image Recognition",
     ],
     license="GPLv3+",
-    author="Jerome Flesch",
-    author_email="jflesch@openpaper.work",
+    author="Louie Lu",
+    author_email="me@louie.lu",
     packages=[
-        'pyocr',
-        'pyocr.libtesseract',
+        'async_pyocr',
+        'async_pyocr.libtesseract',
     ],
     package_dir={
         '': 'src',
@@ -52,7 +50,7 @@ setup(
     data_files=[],
     scripts=[],
     zip_safe=True,
-    python_requires='>=3.4',
+    python_requires='>=3.6',
     install_requires=[
         "Pillow",
     ],
@@ -61,6 +59,6 @@ setup(
         'setuptools_scm_git_archive',
     ],
     use_scm_version={
-        'write_to': 'src/pyocr/_version.py',
+        'write_to': 'src/async_pyocr/_version.py',
     },
 )

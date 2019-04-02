@@ -15,6 +15,7 @@ Copyright (c) Jerome Flesch, 2011-2016
 https://gitlab.gnome.org/World/OpenPaperwork/pyocr#readme
 '''
 
+import asyncio
 import codecs
 import logging
 import os
@@ -241,8 +242,8 @@ def get_available_builders():
     ]
 
 
-def run_tesseract(input_filename, output_filename_base, cwd=None, lang=None,
-                  flags=None, configs=None):
+async def run_tesseract(input_filename, output_filename_base, cwd=None, lang=None,
+                        flags=None, configs=None):
     '''
     Runs Tesseract:
         `TESSERACT_CMD` \
@@ -277,18 +278,19 @@ def run_tesseract(input_filename, output_filename_base, cwd=None, lang=None,
     if configs is not None:
         command += configs
 
-    proc = subprocess.Popen(command, cwd=cwd,
-                            startupinfo=g_subprocess_startup_info,
-                            creationflags=g_creation_flags,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.STDOUT)
+    command = ' '.join(command)
+    proc = await asyncio.create_subprocess_shell(command, cwd=cwd,
+                                                 startupinfo=g_subprocess_startup_info,
+                                                 creationflags=g_creation_flags,
+                                                 stdout=asyncio.subprocess.PIPE,
+                                                 stderr=asyncio.subprocess.STDOUT)
     # Beware that in some cases, tesseract may print more on stderr than
     # allowed by the buffer of subprocess.Popen.stderr. So we must read stderr
     # asap or Tesseract will remain stuck when trying to write again on stderr.
     # In the end, we just have to make sure that proc.stderr.read() is called
     # before proc.wait()
-    errors = proc.stdout.read()
-    return (proc.wait(), errors)
+    errors = await proc.stdout.read()
+    return (await proc.wait(), errors)
 
 
 def cleanup(filename):
@@ -323,7 +325,7 @@ class ReOpenableTempfile(object):  # pragma: no cover
             self.name = None
 
 
-def image_to_string(image, lang=None, builder=None):
+async def image_to_string(image, lang=None, builder=None):
     '''
     Runs tesseract on the specified image. First, the image is written to disk,
     and then the tesseract command is run on the image. Tesseract's result is
@@ -348,10 +350,10 @@ def image_to_string(image, lang=None, builder=None):
         if image.mode != "RGB":
             image = image.convert("RGB")
         image.save(os.path.join(tmpdir, "input.bmp"))
-        (status, errors) = run_tesseract("input.bmp", "output", cwd=tmpdir,
-                                         lang=lang,
-                                         flags=builder.tesseract_flags,
-                                         configs=builder.tesseract_configs)
+        (status, errors) = await run_tesseract("input.bmp", "output", cwd=tmpdir,
+                                               lang=lang,
+                                               flags=builder.tesseract_flags,
+                                               configs=builder.tesseract_configs)
         if status:
             raise TesseractError(status, errors)
 
